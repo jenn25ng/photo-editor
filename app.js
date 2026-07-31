@@ -216,6 +216,7 @@
     $("undoBtn").addEventListener("click", undo);
     $("clearBtn").addEventListener("click", clearAll);
     $("downloadBtn").addEventListener("click", download);
+    $("shareBtn").addEventListener("click", share);
 
     // 펜 드로잉
     drawCanvas.addEventListener("pointerdown", penDown);
@@ -619,32 +620,70 @@
   }
 
   // =========================================================
-  //  저장 (고해상도 PNG)
+  //  내보내기 (배경 + 손글씨 + 개체 → 고해상도 캔버스 합성)
   // =========================================================
-  async function download() {
+  async function buildExportCanvas() {
     if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
     selectObject(null);
 
     const out = document.createElement("canvas");
     out.width = CW; out.height = CH;
     const octx = out.getContext("2d");
-     octx.drawImage(bgCanvas, 0, 0);
-     octx.drawImage(drawCanvas, 0, 0);
+    octx.drawImage(bgCanvas, 0, 0);
+    octx.drawImage(drawCanvas, 0, 0);
 
     state.objects.forEach((o) => {
-       octx.save();
-       octx.translate(o.x, o.y);
-       octx.rotate(o.rotation * Math.PI / 180);
-       octx.font = `${o.size}px ${o.kind === "text" ? '"' + o.font + '"' : o.font}`;
-       octx.textAlign = "center";
-       octx.textBaseline = "middle";
-       octx.fillStyle = o.color;
-       octx.fillText(o.text, 0, 0);
-       octx.restore();
+      octx.save();
+      octx.translate(o.x, o.y);
+      octx.rotate(o.rotation * Math.PI / 180);
+      octx.font = `${o.size}px ${o.kind === "text" ? '"' + o.font + '"' : o.font}`;
+      octx.textAlign = "center";
+      octx.textBaseline = "middle";
+      octx.fillStyle = o.color;
+      octx.fillText(o.text, 0, 0);
+      octx.restore();
     });
+    return out;
+  }
 
+  const fileName = () => `꾸미사진_${state.ratio.replace(":", "x")}.png`;
+
+  // 저장 (PNG 다운로드)
+  async function download() {
+    const out = await buildExportCanvas();
     const link = document.createElement("a");
-    link.download = `꾸미사진_${state.ratio.replace(":", "x")}.png`;
+    link.download = fileName();
+    link.href = out.toDataURL("image/png");
+    link.click();
+  }
+
+  // 인스타 공유 (Web Share API → 아이폰 공유시트에서 인스타 선택)
+  async function share() {
+    const out = await buildExportCanvas();
+    const blob = await new Promise((res) => out.toBlob(res, "image/png"));
+    if (!blob) { alert("이미지를 만들지 못했어요. 다시 시도해주세요."); return; }
+
+    const file = new File([blob], fileName(), { type: "image/png" });
+    // 파일 공유 지원 여부 확인
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "꾸미사진",
+          text: "꾸미사진으로 꾸민 사진 ✨",
+        });
+      } catch (err) {
+        // 사용자가 취소한 경우는 조용히 무시
+        if (err && err.name !== "AbortError") fallbackSave(out);
+      }
+    } else {
+      fallbackSave(out);
+      alert("이 브라우저는 바로 공유가 안 돼요. 저장된 사진을 인스타 스토리/게시물에 올려주세요! (아이폰 사파리 권장)");
+    }
+  }
+  function fallbackSave(out) {
+    const link = document.createElement("a");
+    link.download = fileName();
     link.href = out.toDataURL("image/png");
     link.click();
   }
