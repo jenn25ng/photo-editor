@@ -1,0 +1,9 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# 임시/미리보기 파일
+preview.png
+test.html
+node_modules/
