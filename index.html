@@ -2,126 +2,69 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>꾸미사진</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#fff4e6" />
+  <title>아기랑 – 우리 아기 미디어 놀이터</title>
 
-  <!-- 웹폰트 (구글폰트) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
 
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍼</text></svg>" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- ===== 헤더 ===== -->
   <header class="app-header">
-    <h1>🎨 꾸미사진</h1>
-    <p class="subtitle">인스타에 올리기 전, 사진을 예쁘게 꾸며요</p>
+    <h1 class="logo">🍼 아기랑</h1>
+    <p class="subtitle">우리 아기가 좋아하는 미디어, 시즌 순서대로 쭉!</p>
   </header>
 
-  <main class="app">
-    <!-- ===== 상단 툴바 ===== -->
-    <div class="toolbar">
-      <!-- 배경 / 규격 -->
-      <div class="tool-row">
-        <label class="file-btn">📁 사진
-          <input type="file" id="fileInput" accept="image/*" hidden />
-        </label>
-        <label class="ctrl">배경색
-          <input type="color" id="bgColorInput" value="#ffffff" />
-        </label>
-        <span class="divider"></span>
-        <div class="seg" role="group" aria-label="캔버스 규격">
-          <button class="seg-btn is-active" data-ratio="4:5">피드 4:5</button>
-          <button class="seg-btn" data-ratio="9:16">스토리 9:16</button>
-        </div>
-      </div>
-
-      <!-- 모드 -->
-      <div class="tool-row modes">
-        <button class="mode-btn is-active" data-mode="select">👆 선택</button>
-        <button class="mode-btn" data-mode="pen">✍️ 손글씨</button>
-        <button class="mode-btn" data-mode="text">🔤 텍스트</button>
-        <button class="mode-btn" data-mode="emoji">😊 이모지</button>
-        <button class="mode-btn" data-mode="kaomoji">✨ 템플릿</button>
-        <button class="mode-btn" data-mode="sticker">⭐ 스티커</button>
-      </div>
-
-      <!-- 손글씨(펜) 패널 -->
-      <div class="panel" id="panel-pen" hidden>
-        <label class="ctrl">색<input type="color" id="penColor" value="#ff2d6b" /></label>
-        <label class="ctrl"><span id="penSizeLabel">굵기 14</span>
-          <input type="range" id="penSize" min="2" max="120" value="14" />
-        </label>
-        <button class="btn ghost" id="penEraser">🩹 지우개</button>
-      </div>
-
-      <!-- 텍스트 패널 -->
-      <div class="panel" id="panel-text" hidden>
-        <button class="btn primary" id="addTextBtn">➕ 글자 추가</button>
-        <label class="ctrl">폰트
-          <select id="fontSelect">
-            <option value="Nanum Pen Script" style="font-family:'Nanum Pen Script'">나눔손글씨</option>
-            <option value="Gaegu">개구</option>
-            <option value="Gamja Flower">감자꽃</option>
-            <option value="Jua">주아</option>
-            <option value="Do Hyeon">도현</option>
-            <option value="Noto Sans KR">고딕</option>
-            <option value="Pacifico">Pacifico</option>
-            <option value="Lobster">Lobster</option>
-          </select>
-        </label>
-        <label class="ctrl">색<input type="color" id="textColor" value="#222222" /></label>
-      </div>
-
-      <!-- 이모지 / 템플릿 / 스티커 트레이 -->
-      <div class="panel tray" id="panel-tray" hidden>
-        <div class="tray-cats" id="trayCats"></div>
-        <div class="tray-items" id="trayItems"></div>
-      </div>
-
-      <!-- 선택된 개체 편집 패널 -->
-      <div class="panel selected-panel" id="panel-selected" hidden>
-        <span class="sel-label">선택됨</span>
-        <label class="ctrl"><span>크기</span>
-          <input type="range" id="objSize" min="16" max="600" value="120" />
-        </label>
-        <label class="ctrl"><span>회전</span>
-          <input type="range" id="objRotate" min="-180" max="180" value="0" />
-        </label>
-        <label class="ctrl" id="objColorWrap" hidden>색<input type="color" id="objColor" value="#222222" /></label>
-        <button class="btn" id="objEdit" hidden>✏️ 편집</button>
-        <button class="btn" id="objFront">⬆️ 맨앞</button>
-        <button class="btn danger" id="objDelete">🗑️ 삭제</button>
-      </div>
-
-      <!-- 공통 액션 -->
-      <div class="tool-row actions">
-        <button class="btn" id="undoBtn">↩️ 되돌리기</button>
-        <button class="btn" id="clearBtn">🧹 전체 지우기</button>
-        <button class="btn primary" id="downloadBtn">⬇️ 저장</button>
-      </div>
-    </div>
-
-    <!-- ===== 캔버스 무대 ===== -->
-    <div class="stage-scroll" id="stageScroll">
-      <div class="stage-wrap" id="stageWrap">
-        <div class="stage-inner" id="stageInner">
-          <canvas id="bgCanvas"></canvas>
-          <canvas id="drawCanvas"></canvas>
-          <div class="objects-layer" id="objectsLayer"></div>
-          <div class="empty-hint" id="emptyHint">
-            <div class="empty-emoji">🖼️</div>
-            <p>사진을 열거나<br />배경색을 골라 시작하세요</p>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- ===== 홈: 프로그램 목록 ===== -->
+  <main id="home" class="view">
+    <div class="home-hint">보고 싶은 캐릭터를 골라주세요 👇</div>
+    <section id="showGrid" class="show-grid" aria-label="프로그램 목록"></section>
+    <p class="disclaimer">
+      모든 영상은 각 프로그램의 <strong>공식 유튜브 채널</strong>에서 무료로 공개한 재생목록을 불러와 보여줍니다.
+      이 앱은 영상을 저장하거나 재배포하지 않아요.
+    </p>
   </main>
 
+  <!-- ===== 프로그램 상세: 시즌 목록 ===== -->
+  <section id="showDetail" class="view hidden" aria-label="시즌 목록">
+    <div class="detail-top">
+      <button class="back-btn" data-action="home">← 목록</button>
+      <div class="detail-title">
+        <span id="detailEmoji" class="detail-emoji"></span>
+        <div>
+          <h2 id="detailTitle"></h2>
+          <p id="detailTagline" class="detail-tagline"></p>
+        </div>
+      </div>
+      <div id="langToggle" class="lang-toggle" role="group" aria-label="언어 선택"></div>
+    </div>
+    <div id="seasonList" class="season-list"></div>
+  </section>
+
+  <!-- ===== 플레이어 ===== -->
+  <section id="player" class="view hidden" aria-label="영상 재생">
+    <div class="player-top">
+      <button class="back-btn" data-action="back-to-detail">← 시즌</button>
+      <h2 id="playerTitle" class="player-title"></h2>
+      <a id="openYoutube" class="yt-link" href="#" target="_blank" rel="noopener">유튜브에서 열기 ↗</a>
+    </div>
+    <div class="player-frame">
+      <div id="playerSlot" class="player-slot"></div>
+    </div>
+    <p class="player-note">▶︎ 재생목록이 순서대로 자동 재생됩니다. 광고가 나올 수 있어요.</p>
+  </section>
+
   <footer class="app-footer">
-    손글씨는 드래그, 개체는 <b>선택</b>모드에서 이동·크기·회전 · 저장은 1080px 고해상도
+    <span>👶 아기랑</span> · 부모님이 골라주는 안전한 미디어 놀이터
+    <a class="editor-link" href="./photo-editor/index.html">🎨 꾸미사진</a>
   </footer>
 
+  <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
