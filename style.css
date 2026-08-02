@@ -157,6 +157,8 @@ select {
   padding: 2px 4px;
 }
 .obj.dragging { cursor: grabbing; }
+/* 텍스트/개체 내용 — 여러 줄(줄바꿈) 지원 + 각 줄 가운데 정렬 */
+.obj-text { display: inline-block; white-space: pre; text-align: center; }
 .obj .frame {
   position: absolute; inset: -6px;
   border: calc(2px / var(--stage-scale)) dashed var(--accent-2);
@@ -203,3 +205,28 @@ select {
   input[type="range"] { width: 92px; }
   .mode-btn, .btn { padding: 8px 9px; font-size: 0.82rem; }
 }
+
+/* ===== 텍스트 입력 모달 ===== */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20, 24, 40, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: 0 12px 40px rgba(20, 30, 60, 0.25);
+  padding: 16px; width: min(420px, 100%);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.modal-title { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.modal textarea {
+  width: 100%; resize: vertical; min-height: 88px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+  font-size: 1rem; font-family: inherit; line-height: 1.4;
+  color: var(--text); background: var(--panel-2);
+}
+.modal textarea:focus { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+.modal-hint { margin: 0; font-size: 0.75rem; color: var(--muted); }
+.modal-hint b { color: var(--accent-2); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }

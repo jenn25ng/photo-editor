@@ -296,8 +296,8 @@
     return { x: CW / 2 + (o - 2.5) * 40, y: CH / 2 + (o - 2.5) * 40 };
   }
 
-  function addText() {
-    const txt = window.prompt("텍스트를 입력하세요", "내용을 입력");
+  async function addText() {
+    const txt = await openTextModal("");
     if (txt == null || txt.trim() === "") return;
     pushHistory();
     const p = nextPos();
@@ -486,13 +486,44 @@
   // =========================================================
   //  개체 편집/삭제/순서
   // =========================================================
-  function editSelectedText() {
+  async function editSelectedText() {
     const o = selected();
     if (!o || o.kind !== "text") return;
-    const txt = window.prompt("텍스트 수정", o.text);
+    const txt = await openTextModal(o.text);
     if (txt == null) return;
     pushHistory();
     o.text = txt; updateEl(o);
+  }
+
+  // 여러 줄 텍스트 입력 모달 (prompt 대체) — 확인 시 문자열, 취소 시 null 반환
+  const textModal = $("textModal"), textArea = $("textArea");
+  const textOk = $("textOk"), textCancel = $("textCancel");
+  function openTextModal(initial) {
+    return new Promise((resolve) => {
+      textArea.value = initial || "";
+      textModal.hidden = false;
+      textArea.focus();
+      textArea.setSelectionRange(textArea.value.length, textArea.value.length);
+
+      const cleanup = () => {
+        textModal.hidden = true;
+        textOk.removeEventListener("click", onOk);
+        textCancel.removeEventListener("click", onCancel);
+        textModal.removeEventListener("pointerdown", onBackdrop);
+        textArea.removeEventListener("keydown", onKey);
+      };
+      const onOk = () => { const v = textArea.value; cleanup(); resolve(v); };
+      const onCancel = () => { cleanup(); resolve(null); };
+      const onBackdrop = (e) => { if (e.target === textModal) onCancel(); };
+      const onKey = (e) => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onOk(); }
+        else if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+      };
+      textOk.addEventListener("click", onOk);
+      textCancel.addEventListener("click", onCancel);
+      textModal.addEventListener("pointerdown", onBackdrop);
+      textArea.addEventListener("keydown", onKey);
+    });
   }
   function deleteSelected() {
     const o = selected();
@@ -640,7 +671,11 @@
       octx.textAlign = "center";
       octx.textBaseline = "middle";
       octx.fillStyle = o.color;
-      octx.fillText(o.text, 0, 0);
+      // 여러 줄 지원: \n 기준으로 나눠 각 줄을 화면과 동일한 줄간격(1.15)으로 세로 중앙 배치
+      const lines = String(o.text).split("\n");
+      const lh = o.size * 1.15;
+      const startY = -((lines.length - 1) / 2) * lh;
+      lines.forEach((line, i) => octx.fillText(line, 0, startY + i * lh));
       octx.restore();
     });
     return out;

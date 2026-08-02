@@ -123,6 +123,19 @@
     손글씨는 드래그, 개체는 <b>선택</b>모드에서 이동·크기·회전 · 저장은 1080px 고해상도
   </footer>
 
+  <!-- 텍스트 입력 모달 (여러 줄 지원) -->
+  <div class="modal-backdrop" id="textModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="textModalTitle">
+      <label class="modal-title" id="textModalTitle" for="textArea">텍스트 입력 (여러 줄 가능)</label>
+      <textarea id="textArea" rows="3" placeholder="내용을 입력하세요&#10;Enter로 줄바꿈"></textarea>
+      <p class="modal-hint">💡 <b>Enter</b>로 줄바꿈 · <b>Ctrl/⌘+Enter</b>로 확인</p>
+      <div class="modal-actions">
+        <button class="btn" id="textCancel" type="button">취소</button>
+        <button class="btn primary" id="textOk" type="button">확인</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
