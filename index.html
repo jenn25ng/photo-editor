@@ -39,11 +39,21 @@
       <!-- 모드 -->
       <div class="tool-row modes">
         <button class="mode-btn is-active" data-mode="select">👆 선택</button>
+        <button class="mode-btn" data-mode="bg">🖼️ 배경조정</button>
         <button class="mode-btn" data-mode="pen">✍️ 손글씨</button>
         <button class="mode-btn" data-mode="text">🔤 텍스트</button>
         <button class="mode-btn" data-mode="emoji">😊 이모지</button>
         <button class="mode-btn" data-mode="kaomoji">✨ 템플릿</button>
         <button class="mode-btn" data-mode="sticker">⭐ 스티커</button>
+      </div>
+
+      <!-- 배경 사진 조정 패널 -->
+      <div class="panel" id="panel-bg" hidden>
+        <label class="ctrl"><span id="bgZoomLabel">확대 1.0x</span>
+          <input type="range" id="bgZoom" min="100" max="300" value="100" />
+        </label>
+        <button class="btn ghost" id="bgReset">↺ 초기화</button>
+        <span class="ctrl">👆 사진을 드래그해 위치 이동</span>
       </div>
 
       <!-- 손글씨(펜) 패널 -->

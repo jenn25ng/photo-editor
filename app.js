@@ -79,6 +79,7 @@
 
   const fileInput = $("fileInput"), bgColorInput = $("bgColorInput");
   const penColor = $("penColor"), penSize = $("penSize"), penSizeLabel = $("penSizeLabel"), penEraser = $("penEraser");
+  const bgZoom = $("bgZoom"), bgZoomLabel = $("bgZoomLabel"), bgReset = $("bgReset");
   const addTextBtn = $("addTextBtn"), fontSelect = $("fontSelect"), textColor = $("textColor");
   const trayItems = $("trayItems"), trayCats = $("trayCats");
   const objSize = $("objSize"), objRotate = $("objRotate");
@@ -86,7 +87,7 @@
   const objColor = $("objColor"), objColorWrap = $("objColorWrap");
 
   const panels = {
-    pen: $("panel-pen"), text: $("panel-text"), tray: $("panel-tray"), selected: $("panel-selected"),
+    bg: $("panel-bg"), pen: $("panel-pen"), text: $("panel-text"), tray: $("panel-tray"), selected: $("panel-selected"),
   };
   const modeBtns = Array.from(document.querySelectorAll(".mode-btn"));
   const segBtns = Array.from(document.querySelectorAll(".seg-btn"));
@@ -102,6 +103,9 @@
     textColor: "#222222",
     bgColor: "#ffffff",
     bgImage: null,
+    bgScale: 1,       // 배경 사진 확대 배율 (1 = 꽉 채움)
+    bgOffsetX: 0,     // 배경 사진 위치 이동 (캔버스 px)
+    bgOffsetY: 0,
     objects: [],
     selectedId: null,
     seq: 0,
@@ -152,6 +156,7 @@
       // 개체 위치/크기 비율 보정
       const rx = CW / oldW, ry = CH / oldH;
       state.objects.forEach((o) => { o.x *= rx; o.y *= ry; o.size *= rx; });
+      state.bgOffsetX *= rx; state.bgOffsetY *= ry;
       renderObjects();
     }
     fitStage();
@@ -177,9 +182,19 @@
 
   function drawCover(ctx, img, w, h) {
     const ir = img.width / img.height, cr = w / h;
-    let dw, dh, dx, dy;
-    if (ir > cr) { dh = h; dw = h * ir; dx = (w - dw) / 2; dy = 0; }
-    else { dw = w; dh = w / ir; dx = 0; dy = (h - dh) / 2; }
+    let dw, dh;
+    if (ir > cr) { dh = h; dw = h * ir; } else { dw = w; dh = w / ir; }
+    // 확대 배율 적용
+    dw *= state.bgScale; dh *= state.bgScale;
+    // 가운데 + 사용자 이동값
+    let dx = (w - dw) / 2 + state.bgOffsetX;
+    let dy = (h - dh) / 2 + state.bgOffsetY;
+    // 항상 캔버스를 덮도록 이동 범위 제한(빈 여백 방지)
+    dx = Math.min(0, Math.max(w - dw, dx));
+    dy = Math.min(0, Math.max(h - dh, dy));
+    // 제한된 값을 다시 저장해 상태 일관성 유지
+    state.bgOffsetX = dx - (w - dw) / 2;
+    state.bgOffsetY = dy - (h - dh) / 2;
     ctx.drawImage(img, dx, dy, dw, dh);
   }
 
@@ -242,6 +257,23 @@
     drawCanvas.addEventListener("pointermove", penMove);
     window.addEventListener("pointerup", penUp);
 
+    // 배경 사진 조정 (확대 · 위치 이동)
+    drawCanvas.addEventListener("pointerdown", bgPanDown);
+    drawCanvas.addEventListener("pointermove", bgPanMove);
+    window.addEventListener("pointerup", bgPanUp);
+    bgZoom.addEventListener("input", (e) => {
+      state.bgScale = +e.target.value / 100;
+      bgZoomLabel.textContent = "확대 " + state.bgScale.toFixed(1) + "x";
+      redrawBg();
+    });
+    bgZoom.addEventListener("change", pushHistory);
+    bgReset.addEventListener("click", () => {
+      pushHistory();
+      state.bgScale = 1; state.bgOffsetX = 0; state.bgOffsetY = 0;
+      bgZoom.value = 100; bgZoomLabel.textContent = "확대 1.0x";
+      redrawBg();
+    });
+
     // 빈 곳 탭 → 선택 해제
     stageScroll.addEventListener("pointerdown", (e) => {
       if (e.target === stageScroll || e.target === stageWrap || e.target === objectsLayer) selectObject(null);
@@ -261,16 +293,20 @@
     modeBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.mode === mode));
 
     Object.values(panels).forEach((p) => (p.hidden = true));
-    if (mode === "pen") panels.pen.hidden = false;
+    if (mode === "bg") panels.bg.hidden = false;
+    else if (mode === "pen") panels.pen.hidden = false;
     else if (mode === "text") panels.text.hidden = false;
     else if (mode === "emoji" || mode === "kaomoji" || mode === "sticker") {
       panels.tray.hidden = false;
       buildTray(mode);
     }
 
-    // 손글씨 모드에서만 캔버스가 입력을 받고, 그 외엔 개체 조작 가능
-    drawCanvas.style.pointerEvents = mode === "pen" ? "auto" : "none";
-    objectsLayer.style.pointerEvents = mode === "select" ? "auto" : "none";
+    // 손글씨=그리기, 배경조정=사진 이동 → 캔버스가 입력을 받음
+    // 그 외 모든 모드에서는 개체를 바로 드래그/크기/회전 할 수 있음
+    const canvasGrabs = mode === "pen" || mode === "bg";
+    drawCanvas.style.pointerEvents = canvasGrabs ? "auto" : "none";
+    drawCanvas.style.cursor = mode === "bg" ? "move" : "";
+    objectsLayer.style.pointerEvents = canvasGrabs ? "none" : "auto";
 
     if (mode !== "select") selectObject(null);
     else if (state.selectedId) panels.selected.hidden = false;
@@ -372,6 +408,7 @@
     state.objects.push(obj);
     renderObjects();
     markBg();
+    selectObject(obj.id);   // 방금 추가한 개체를 바로 선택 → 핸들 표시 + 이동/크기/회전 가능
   }
 
   // =========================================================
@@ -460,7 +497,7 @@
     state.selectedId = id;
     state.objects.forEach((o) => o._el && o._el.classList.toggle("selected", o.id === id));
     const o = selected();
-    if (o && state.mode === "select") {
+    if (o && state.mode !== "pen" && state.mode !== "bg") {
       panels.selected.hidden = false;
       objSize.value = Math.round(o.size);
       objRotate.value = Math.round(o.rotation);
@@ -484,7 +521,7 @@
 
   let drag = null;
   function onObjDown(e, o) {
-    if (state.mode !== "select") return;
+    if (state.mode === "pen" || state.mode === "bg") return;
     if (e.target.classList.contains("handle")) return; // 핸들은 별도 처리
     e.stopPropagation();
     selectObject(o.id);
@@ -632,6 +669,26 @@
   }
   function penUp() { pen = null; }
 
+  // ---------- 배경 사진 위치 이동(드래그) ----------
+  let bgPan = null;
+  function bgPanDown(e) {
+    if (state.mode !== "bg" || !state.bgImage) return;
+    e.preventDefault();
+    pushHistory();
+    const p = toCanvas(e);
+    bgPan = { x: p.x, y: p.y };
+    drawCanvas.setPointerCapture && drawCanvas.setPointerCapture(e.pointerId);
+  }
+  function bgPanMove(e) {
+    if (!bgPan) return;
+    const p = toCanvas(e);
+    state.bgOffsetX += p.x - bgPan.x;
+    state.bgOffsetY += p.y - bgPan.y;
+    bgPan = { x: p.x, y: p.y };
+    redrawBg();   // drawCover 가 이동 범위를 자동 제한
+  }
+  function bgPanUp() { bgPan = null; }
+
   function strokeSeg(x1, y1, x2, y2) {
     dctx.lineJoin = dctx.lineCap = "round";
     dctx.lineWidth = state.penSize;
@@ -657,6 +714,9 @@
     img.onload = () => {
       pushHistory();
       state.bgImage = img;
+      // 새 사진은 확대/위치 초기화
+      state.bgScale = 1; state.bgOffsetX = 0; state.bgOffsetY = 0;
+      if (bgZoom) { bgZoom.value = 100; bgZoomLabel.textContent = "확대 1.0x"; }
       redrawBg(); markBg();
     };
     img.src = URL.createObjectURL(file);
@@ -670,6 +730,7 @@
     return {
       bgColor: state.bgColor,
       bgImageSrc: state.bgImage ? state.bgImage.src : null,
+      bgScale: state.bgScale, bgOffsetX: state.bgOffsetX, bgOffsetY: state.bgOffsetY,
       drawURL: drawCanvas.toDataURL(),
       objects: state.objects.map(({ _el, ...o }) => ({ ...o })),
     };
@@ -685,6 +746,10 @@
     if (!s) return;
     state.bgColor = s.bgColor;
     bgColorInput.value = s.bgColor;
+    if (s.bgScale != null) {
+      state.bgScale = s.bgScale; state.bgOffsetX = s.bgOffsetX; state.bgOffsetY = s.bgOffsetY;
+      if (bgZoom) { bgZoom.value = Math.round(state.bgScale * 100); bgZoomLabel.textContent = "확대 " + state.bgScale.toFixed(1) + "x"; }
+    }
     state.objects = s.objects.map((o) => ({ ...o }));
     state.selectedId = null;
     panels.selected.hidden = true;
@@ -706,6 +771,8 @@
     if (!confirm("모든 편집 내용을 지울까요? (배경 사진 포함)")) return;
     pushHistory();
     state.objects = []; state.selectedId = null; state.bgImage = null;
+    state.bgScale = 1; state.bgOffsetX = 0; state.bgOffsetY = 0;
+    if (bgZoom) { bgZoom.value = 100; bgZoomLabel.textContent = "확대 1.0x"; }
     dctx.clearRect(0, 0, CW, CH);
     redrawBg(); renderObjects();
     panels.selected.hidden = true;
