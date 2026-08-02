@@ -52,6 +52,23 @@
       "☾","☼","✪","⌘","☕","❄","✵","✷","❖","◆","◇","♢"],
   };
 
+  // 인스타 스토리 스타일 프리셋 (폰트 + 스타일 조합) — 모두 무료 폰트/CSS 효과
+  const TEXT_PRESETS = {
+    classic:    { font: "Noto Sans KR",        weight: 700, letterSpacing: 0,    upper: false, glow: false, highlight: false, color: "#ffffff", size: 120 },
+    modern:     { font: "Gowun Dodum",         weight: 400, letterSpacing: 0.12, upper: true,  glow: false, highlight: false, color: "#ffffff", size: 110 },
+    neon:       { font: "Nanum Pen Script",     weight: 400, letterSpacing: 0,    upper: false, glow: true,  highlight: false, color: "#ff4db8", size: 150 },
+    typewriter: { font: "Nanum Gothic Coding",  weight: 400, letterSpacing: 0,    upper: false, glow: false, highlight: false, color: "#ffffff", size: 110 },
+    strong:     { font: "Black Han Sans",       weight: 400, letterSpacing: 0,    upper: false, glow: false, highlight: true,  color: "#ffffff", highlightColor: "#ff2d6b", size: 120 },
+  };
+  function presetFields(key) {
+    const p = TEXT_PRESETS[key];
+    return {
+      preset: key, font: p.font, color: p.color, weight: p.weight,
+      letterSpacing: p.letterSpacing, upper: p.upper, glow: p.glow,
+      highlight: p.highlight, highlightColor: p.highlightColor || "#ff2d6b",
+    };
+  }
+
   // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const bgCanvas = $("bgCanvas"), drawCanvas = $("drawCanvas");
@@ -190,6 +207,8 @@
 
     // 텍스트
     addTextBtn.addEventListener("click", addText);
+    Array.from(document.querySelectorAll(".preset-btn")).forEach((b) =>
+      b.addEventListener("click", () => addTextWithPreset(b.dataset.preset)));
     fontSelect.addEventListener("change", (e) => {
       state.font = e.target.value;
       const o = selected();
@@ -313,6 +332,33 @@
     selectObject(obj.id);
   }
 
+  // 프리셋 클릭: 텍스트가 선택돼 있으면 스타일만 교체, 아니면 새 텍스트 추가
+  async function addTextWithPreset(key) {
+    if (!TEXT_PRESETS[key]) return;
+    const sel = selected();
+    if (sel && sel.kind === "text") {
+      pushHistory();
+      Object.assign(sel, presetFields(key));   // 위치·크기·회전·내용은 유지
+      updateEl(sel);
+      selectObject(sel.id);
+      return;
+    }
+    const txt = await openTextModal("");
+    if (txt == null || txt.trim() === "") return;
+    pushHistory();
+    const p = nextPos();
+    const obj = {
+      id: ++state.seq, kind: "text", text: txt,
+      x: p.x, y: p.y, size: TEXT_PRESETS[key].size, rotation: 0,
+      ...presetFields(key),
+    };
+    state.objects.push(obj);
+    renderObjects();
+    markBg();
+    setMode("select");
+    selectObject(obj.id);
+  }
+
   function addDeco(ch, kind) {
     pushHistory();
     const p = nextPos();
@@ -383,6 +429,25 @@
     el.style.fontFamily = o.font;
     el.style.fontSize = o.size + "px";
     el.style.color = o.color;
+    el.style.fontWeight = o.weight || 400;
+    el.style.letterSpacing = (o.letterSpacing || 0) + "em";
+    el.style.textTransform = o.upper ? "uppercase" : "none";
+    el.style.textShadow = o.glow
+      ? `0 0 0.25em ${o.color}, 0 0 0.5em ${o.color}, 0 0 0.9em ${o.color}`
+      : "none";
+    if (o.highlight) {
+      span.style.background = o.highlightColor || "#ff2d6b";
+      span.style.padding = "0.05em 0.28em";
+      span.style.borderRadius = "0.22em";
+      span.style.boxDecorationBreak = "clone";
+      span.style.webkitBoxDecorationBreak = "clone";
+    } else {
+      span.style.background = "";
+      span.style.padding = "";
+      span.style.borderRadius = "";
+      span.style.boxDecorationBreak = "";
+      span.style.webkitBoxDecorationBreak = "";
+    }
     el.style.transform = `translate(-50%,-50%) rotate(${o.rotation}deg)`;
   }
 
@@ -402,6 +467,7 @@
       objEdit.hidden = o.kind !== "text";
       objColorWrap.hidden = o.kind === "emoji";
       if (o.kind !== "emoji") objColor.value = toHex(o.color);
+      if (o.kind === "text") fontSelect.value = o.font;
     } else {
       panels.selected.hidden = true;
     }
@@ -663,22 +729,68 @@
     octx.drawImage(bgCanvas, 0, 0);
     octx.drawImage(drawCanvas, 0, 0);
 
-    state.objects.forEach((o) => {
-      octx.save();
-      octx.translate(o.x, o.y);
-      octx.rotate(o.rotation * Math.PI / 180);
-      octx.font = `${o.size}px ${o.kind === "text" ? '"' + o.font + '"' : o.font}`;
-      octx.textAlign = "center";
-      octx.textBaseline = "middle";
-      octx.fillStyle = o.color;
-      // 여러 줄 지원: \n 기준으로 나눠 각 줄을 화면과 동일한 줄간격(1.15)으로 세로 중앙 배치
-      const lines = String(o.text).split("\n");
-      const lh = o.size * 1.15;
-      const startY = -((lines.length - 1) / 2) * lh;
-      lines.forEach((line, i) => octx.fillText(line, 0, startY + i * lh));
-      octx.restore();
-    });
+    state.objects.forEach((o) => drawObjToCtx(octx, o));
     return out;
+  }
+
+  // 개체 1개를 캔버스에 그림 (화면 렌더와 동일한 스타일: 굵기·자간·대문자·글로우·하이라이트·여러 줄)
+  function drawObjToCtx(octx, o) {
+    octx.save();
+    octx.translate(o.x, o.y);
+    octx.rotate(o.rotation * Math.PI / 180);
+
+    const family = o.kind === "text" ? '"' + o.font + '"' : o.font;
+    const weight = o.weight ? o.weight + " " : "";
+    octx.font = `${weight}${o.size}px ${family}`;
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    if ("letterSpacing" in octx) octx.letterSpacing = (o.letterSpacing || 0) + "em";
+
+    let lines = String(o.text).split("\n");
+    if (o.upper) lines = lines.map((l) => l.toUpperCase());
+    const lh = o.size * 1.15;
+    const startY = -((lines.length - 1) / 2) * lh;
+
+    // 스트롱: 줄마다 형광 하이라이트 배경 (화면 box-decoration-break 와 대응)
+    if (o.highlight) {
+      const padX = o.size * 0.28, padY = o.size * 0.05;
+      const boxH = o.size + padY * 2;
+      const r = o.size * 0.22;
+      octx.fillStyle = o.highlightColor || "#ff2d6b";
+      lines.forEach((line, i) => {
+        const w = octx.measureText(line).width + padX * 2;
+        const cy = startY + i * lh;
+        roundRect(octx, -w / 2, cy - boxH / 2, w, boxH, r);
+        octx.fill();
+      });
+    }
+
+    // 네온: 글로우
+    if (o.glow) {
+      octx.shadowColor = o.color;
+      octx.shadowBlur = o.size * 0.5;
+    }
+    octx.fillStyle = o.color;
+    const passes = o.glow ? 3 : 1;   // 여러 번 겹쳐 글로우 강화
+    for (let k = 0; k < passes; k++) {
+      lines.forEach((line, i) => octx.fillText(line, 0, startY + i * lh));
+    }
+
+    octx.shadowBlur = 0; octx.shadowColor = "transparent";
+    if ("letterSpacing" in octx) octx.letterSpacing = "0px";
+    octx.restore();
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   const fileName = () => `꾸미사진_${state.ratio.replace(":", "x")}.png`;

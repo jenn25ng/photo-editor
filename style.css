@@ -124,6 +124,28 @@ select {
 .tray-item.wide { font-size: 0.95rem; }
 .tray-item:hover { background: #e4e8f1; }
 
+/* 인스타 스토리 스타일 프리셋 버튼 */
+.preset-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  justify-content: center; width: 100%;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.preset-label { font-size: 0.78rem; color: var(--muted); margin-right: 2px; }
+.preset-btn {
+  appearance: none; border: 1px solid var(--border); background: var(--panel-2);
+  color: var(--text); padding: 6px 12px; border-radius: 999px;
+  font-size: 0.82rem; cursor: pointer; white-space: nowrap; font-weight: 700;
+  transition: transform 0.05s ease, filter 0.15s ease;
+}
+.preset-btn:active { transform: scale(0.95); }
+.preset-btn.is-modern { letter-spacing: 0.12em; text-transform: uppercase; font-weight: 400; }
+.preset-btn.is-neon {
+  color: #ff4db8; border-color: #ff4db8;
+  text-shadow: 0 0 6px rgba(255, 77, 184, 0.9);
+}
+.preset-btn.is-type { font-family: "Nanum Gothic Coding", monospace; }
+.preset-btn.is-strong { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 .selected-panel { background: #fff7fa; border-radius: 10px; padding: 6px; }
 .sel-label { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
 
@@ -151,14 +173,15 @@ select {
   transform: translate(-50%, -50%);
   transform-origin: center center;
   white-space: nowrap;
+  text-align: center;
   cursor: grab;
   touch-action: none;
   line-height: 1.15;
   padding: 2px 4px;
 }
 .obj.dragging { cursor: grabbing; }
-/* 텍스트/개체 내용 — 여러 줄(줄바꿈) 지원 + 각 줄 가운데 정렬 */
-.obj-text { display: inline-block; white-space: pre; text-align: center; }
+/* inline + pre 로 줄바꿈 유지 + (스트롱 프리셋) 하이라이트가 줄마다 감싸지도록 */
+.obj-text { display: inline; white-space: pre; }
 .obj .frame {
   position: absolute; inset: -6px;
   border: calc(2px / var(--stage-scale)) dashed var(--accent-2);

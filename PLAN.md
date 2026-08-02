@@ -34,7 +34,12 @@
 - 고딕·제목: Jua, Do Hyeon, Black Han Sans(강조), Gowun Dodum, Noto Sans KR
 - 명조·감성: Song Myung
 - 영문 멋진체: Montserrat, Bebas Neue, Pacifico, Caveat, Dancing Script, Sacramento, Lobster
+- 타자기(고정폭): Nanum Gothic Coding
 - ※ 인스타 기본 폰트는 독점(저작권) → 그대로 넣지 않고, **감성이 비슷한 무료 대체 폰트**로 구성
+
+### 6-1. 스토리 스타일 프리셋 (원터치)
+- **클래식**(굵은 고딕) · **모던**(가는+대문자+자간) · **네온**(손글씨+글로우) · **타자기**(고정폭) · **스트롱**(초굵은+형광 하이라이트)
+- 폰트+스타일(굵기/자간/대문자/글로우/하이라이트)을 함께 적용, 화면=저장 동일하게 렌더
 
 ## 7. 애플 이모지 방침
 - 아이폰에서 열면 기기 기본 폰트가 애플 이모지 → 자동 적용

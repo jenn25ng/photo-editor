@@ -8,7 +8,7 @@
   <!-- 웹폰트 (구글폰트) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&family=Black+Han+Sans&family=Nanum+Brush+Script&family=Hi+Melody&family=Poor+Story&family=Song+Myung&family=Gowun+Dodum&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Sacramento&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&family=Black+Han+Sans&family=Nanum+Brush+Script&family=Hi+Melody&family=Poor+Story&family=Song+Myung&family=Gowun+Dodum&family=Nanum+Gothic+Coding&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Sacramento&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -57,6 +57,14 @@
 
       <!-- 텍스트 패널 -->
       <div class="panel" id="panel-text" hidden>
+        <div class="preset-row" id="presetRow" aria-label="인스타 스토리 스타일">
+          <span class="preset-label">스타일</span>
+          <button class="preset-btn" data-preset="classic" type="button">클래식</button>
+          <button class="preset-btn is-modern" data-preset="modern" type="button">모던</button>
+          <button class="preset-btn is-neon" data-preset="neon" type="button">네온</button>
+          <button class="preset-btn is-type" data-preset="typewriter" type="button">타자기</button>
+          <button class="preset-btn is-strong" data-preset="strong" type="button">스트롱</button>
+        </div>
         <button class="btn primary" id="addTextBtn">➕ 글자 추가</button>
         <label class="ctrl">폰트
           <select id="fontSelect">
@@ -73,6 +81,7 @@
               <option value="Do Hyeon" style="font-family:'Do Hyeon'">도현</option>
               <option value="Black Han Sans" style="font-family:'Black Han Sans'">검은고딕(강조)</option>
               <option value="Gowun Dodum" style="font-family:'Gowun Dodum'">고운돋움</option>
+              <option value="Nanum Gothic Coding" style="font-family:'Nanum Gothic Coding'">나눔코딩(타자기)</option>
               <option value="Noto Sans KR" style="font-family:'Noto Sans KR'">고딕</option>
             </optgroup>
             <optgroup label="명조 · 감성">
