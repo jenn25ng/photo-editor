@@ -29,11 +29,12 @@
 | 개체 편집 | 드래그 이동 · 코너 핸들 크기/회전 · 삭제 · 맨앞으로 |
 | 저장 | 1080px 고해상도 PNG |
 
-## 6. 폰트 (Google Fonts)
-- 손글씨체: Nanum Pen Script, Gaegu
-- 귀여운체: Jua, Gamja Flower, Do Hyeon
-- 고딕: Noto Sans KR
-- 영문 멋진체: Pacifico, Lobster
+## 6. 폰트 (Google Fonts · 무료/상업이용 가능)
+- 손글씨·귀여움: Nanum Pen Script, Gaegu, Gamja Flower, Hi Melody, Poor Story, Nanum Brush Script
+- 고딕·제목: Jua, Do Hyeon, Black Han Sans(강조), Gowun Dodum, Noto Sans KR
+- 명조·감성: Song Myung
+- 영문 멋진체: Montserrat, Bebas Neue, Pacifico, Caveat, Dancing Script, Sacramento, Lobster
+- ※ 인스타 기본 폰트는 독점(저작권) → 그대로 넣지 않고, **감성이 비슷한 무료 대체 폰트**로 구성
 
 ## 7. 애플 이모지 방침
 - 아이폰에서 열면 기기 기본 폰트가 애플 이모지 → 자동 적용

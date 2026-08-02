@@ -8,7 +8,7 @@
   <!-- 웹폰트 (구글폰트) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&family=Black+Han+Sans&family=Nanum+Brush+Script&family=Hi+Melody&family=Poor+Story&family=Song+Myung&family=Gowun+Dodum&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Sacramento&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -60,14 +60,33 @@
         <button class="btn primary" id="addTextBtn">➕ 글자 추가</button>
         <label class="ctrl">폰트
           <select id="fontSelect">
-            <option value="Nanum Pen Script" style="font-family:'Nanum Pen Script'">나눔손글씨</option>
-            <option value="Gaegu">개구</option>
-            <option value="Gamja Flower">감자꽃</option>
-            <option value="Jua">주아</option>
-            <option value="Do Hyeon">도현</option>
-            <option value="Noto Sans KR">고딕</option>
-            <option value="Pacifico">Pacifico</option>
-            <option value="Lobster">Lobster</option>
+            <optgroup label="손글씨 · 귀여움">
+              <option value="Nanum Pen Script" style="font-family:'Nanum Pen Script'">나눔손글씨</option>
+              <option value="Gaegu" style="font-family:'Gaegu'">개구</option>
+              <option value="Gamja Flower" style="font-family:'Gamja Flower'">감자꽃</option>
+              <option value="Hi Melody" style="font-family:'Hi Melody'">하이멜로디</option>
+              <option value="Poor Story" style="font-family:'Poor Story'">푸어스토리</option>
+              <option value="Nanum Brush Script" style="font-family:'Nanum Brush Script'">나눔 붓글씨</option>
+            </optgroup>
+            <optgroup label="고딕 · 제목">
+              <option value="Jua" style="font-family:'Jua'">주아</option>
+              <option value="Do Hyeon" style="font-family:'Do Hyeon'">도현</option>
+              <option value="Black Han Sans" style="font-family:'Black Han Sans'">검은고딕(강조)</option>
+              <option value="Gowun Dodum" style="font-family:'Gowun Dodum'">고운돋움</option>
+              <option value="Noto Sans KR" style="font-family:'Noto Sans KR'">고딕</option>
+            </optgroup>
+            <optgroup label="명조 · 감성">
+              <option value="Song Myung" style="font-family:'Song Myung'">송명(명조)</option>
+            </optgroup>
+            <optgroup label="영문">
+              <option value="Montserrat" style="font-family:'Montserrat'">Montserrat</option>
+              <option value="Bebas Neue" style="font-family:'Bebas Neue'">Bebas Neue</option>
+              <option value="Pacifico" style="font-family:'Pacifico'">Pacifico</option>
+              <option value="Caveat" style="font-family:'Caveat'">Caveat</option>
+              <option value="Dancing Script" style="font-family:'Dancing Script'">Dancing Script</option>
+              <option value="Sacramento" style="font-family:'Sacramento'">Sacramento</option>
+              <option value="Lobster" style="font-family:'Lobster'">Lobster</option>
+            </optgroup>
           </select>
         </label>
         <label class="ctrl">색<input type="color" id="textColor" value="#222222" /></label>
