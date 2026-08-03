@@ -261,6 +261,7 @@
     drawCanvas.addEventListener("pointerdown", bgPanDown);
     drawCanvas.addEventListener("pointermove", bgPanMove);
     window.addEventListener("pointerup", bgPanUp);
+    window.addEventListener("pointercancel", bgPanUp);
     bgZoom.addEventListener("input", (e) => {
       state.bgScale = +e.target.value / 100;
       bgZoomLabel.textContent = "확대 " + state.bgScale.toFixed(1) + "x";
@@ -669,25 +670,67 @@
   }
   function penUp() { pen = null; }
 
-  // ---------- 배경 사진 위치 이동(드래그) ----------
-  let bgPan = null;
+  // ---------- 배경 사진 조정: 한 손가락 이동 + 두 손가락 핀치 확대 ----------
+  const bgPointers = new Map();   // pointerId -> {x,y} (캔버스 좌표)
+  let bgGesture = null;           // { mode:"pan"|"pinch", ... }
+
+  function syncZoomUI() {
+    if (!bgZoom) return;
+    bgZoom.value = Math.round(state.bgScale * 100);
+    bgZoomLabel.textContent = "확대 " + state.bgScale.toFixed(1) + "x";
+  }
+  function startPinch() {
+    const pts = [...bgPointers.values()];
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+    const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+    bgGesture = { mode: "pinch", startDist: dist, startScale: state.bgScale, lastMid: mid };
+  }
   function bgPanDown(e) {
     if (state.mode !== "bg" || !state.bgImage) return;
     e.preventDefault();
-    pushHistory();
-    const p = toCanvas(e);
-    bgPan = { x: p.x, y: p.y };
     drawCanvas.setPointerCapture && drawCanvas.setPointerCapture(e.pointerId);
+    bgPointers.set(e.pointerId, toCanvas(e));
+    if (bgPointers.size === 1) {
+      pushHistory();
+      bgGesture = { mode: "pan", last: toCanvas(e) };
+    } else if (bgPointers.size === 2) {
+      startPinch();   // 두 번째 손가락 → 핀치 시작
+    }
   }
   function bgPanMove(e) {
-    if (!bgPan) return;
-    const p = toCanvas(e);
-    state.bgOffsetX += p.x - bgPan.x;
-    state.bgOffsetY += p.y - bgPan.y;
-    bgPan = { x: p.x, y: p.y };
-    redrawBg();   // drawCover 가 이동 범위를 자동 제한
+    if (state.mode !== "bg" || !bgPointers.has(e.pointerId)) return;
+    bgPointers.set(e.pointerId, toCanvas(e));
+    if (!bgGesture) return;
+
+    if (bgGesture.mode === "pinch" && bgPointers.size >= 2) {
+      const pts = [...bgPointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+      state.bgScale = clamp(bgGesture.startScale * (dist / bgGesture.startDist), 1, 3);
+      state.bgOffsetX += mid.x - bgGesture.lastMid.x;   // 두 손가락 중심 이동만큼 함께 이동
+      state.bgOffsetY += mid.y - bgGesture.lastMid.y;
+      bgGesture.lastMid = mid;
+      syncZoomUI();
+      redrawBg();
+    } else if (bgGesture.mode === "pan") {
+      const p = toCanvas(e);
+      state.bgOffsetX += p.x - bgGesture.last.x;
+      state.bgOffsetY += p.y - bgGesture.last.y;
+      bgGesture.last = p;
+      redrawBg();   // drawCover 가 이동 범위를 자동 제한
+    }
   }
-  function bgPanUp() { bgPan = null; }
+  function bgPanUp(e) {
+    if (!bgPointers.has(e.pointerId)) return;
+    bgPointers.delete(e.pointerId);
+    if (bgPointers.size === 1) {
+      // 핀치 → 한 손가락으로 줄면 남은 손가락으로 이동 계속
+      const rest = [...bgPointers.values()][0];
+      bgGesture = { mode: "pan", last: rest };
+    } else if (bgPointers.size === 0) {
+      bgGesture = null;
+    }
+  }
 
   function strokeSeg(x1, y1, x2, y2) {
     dctx.lineJoin = dctx.lineCap = "round";
