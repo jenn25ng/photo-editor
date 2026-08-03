@@ -1,0 +1,17 @@
+{
+  "name": "아기랑 – 우리 아기 미디어 놀이터",
+  "short_name": "아기랑",
+  "description": "넘버블럭스·페파피그 등 유명 어린이 프로그램을 시즌 순서대로 볼 수 있는 아기 미디어 앱",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff4e6",
+  "theme_color": "#fff4e6",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
