@@ -302,6 +302,9 @@ select {
 }
 .obj.dragging { cursor: grabbing; }
 .obj-text { display: inline; white-space: pre; }
+/* Twemoji 이미지 개체 */
+.obj-img { display: block; pointer-events: none; -webkit-user-drag: none; user-select: none; }
+.tray-item img.tw { width: 30px; height: 30px; display: block; }
 /* 인라인 편집 중인 텍스트 */
 .obj-text[contenteditable] { cursor: text; caret-color: var(--accent-2); }
 .obj.editing .obj-text {

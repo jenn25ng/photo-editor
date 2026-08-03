@@ -15,6 +15,40 @@
   const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   const SYMBOL_FONT = '"Noto Sans KR","Apple SD Gothic Neo",sans-serif';
 
+  // Twemoji: 모든 기기에서 똑같이 보이는 이모지 이미지 (저장소에 직접 포함, 실패 시 기기 이모지로 대체)
+  // Twemoji © Twitter/jdecked, CC-BY 4.0
+  const TWEMOJI_BASE = "assets/twemoji/";
+  function twemojiCode(emoji) {
+    const noZwj = emoji.indexOf("‍") < 0;
+    const s = noZwj ? emoji.replace(/️/g, "") : emoji;
+    const r = []; let hi = 0;
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      if (hi) { r.push((0x10000 + ((hi - 0xD800) << 10) + (c - 0xDC00)).toString(16)); hi = 0; }
+      else if (c >= 0xD800 && c <= 0xDBFF) { hi = c; }
+      else r.push(c.toString(16));
+    }
+    return r.join("-");
+  }
+  const twemojiUrl = (emoji) => {
+    const code = twemojiCode(emoji);
+    if (window.__TWEMOJI__ && window.__TWEMOJI__[code]) return window.__TWEMOJI__[code];  // 미리보기 인라인
+    return TWEMOJI_BASE + code + ".svg";
+  };
+
+  // 이모지 (Twemoji 이미지로 렌더) — 카테고리별
+  const EMOJI_CATS = {
+    "표정": ["😀","😄","😆","🥹","😍","🥰","😘","😗","😙","😚","🤗","🤭","😎","🤩",
+      "🥳","😏","😉","😜","😋","🤔","🙄","😶","😴","😪","😭","😢","🥺","😳","😱","🤯","😤","🥱","🙈","🙉","🙊"],
+    "하트": ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💖","💗","💓","💞","💕",
+      "💘","💝","💟","❣️","💔","♥️","💌","💋","😻"],
+    "반짝": ["✨","⭐","🌟","💫","⚡","🔥","🌈","☀️","🌙","⛅","☁️","❄️","💥","💦","💨","🎆","🎇","🪄","👑","💎"],
+    "자연": ["🌸","🌺","🌷","🌹","🌻","🌼","💐","🌿","🍀","🍃","🌱","🌴","🌊","🍄","🐚","🌍","🌝","🌚","🪷"],
+    "음식": ["🍓","🍒","🍑","🍎","🍊","🍋","🍉","🍇","🍏","🥝","🍰","🧁","🍩","🍪","🍭","🍬","🍫","🍦","☕","🧋","🍾","🥂","🍷"],
+    "동물": ["🐶","🐱","🐰","🐻","🐼","🐨","🦊","🐯","🦁","🐸","🐥","🐤","🐧","🦋","🐝","🐬","🐳","🦄","🐢"],
+    "기타": ["🎀","🎁","🎉","🎊","🎈","💯","✅","❌","❗","❓","💤","💢","🎧","🎵","🎶","📸","📷","👍","👏","🙌","🤳","✌️","🤟","💪"],
+  };
+
   // 감성 특수문자 템플릿 (유니코드 조합, 자유 사용 가능) — 카테고리별
   const TEMPLATES = {
     "하트": ["♡","❤","♥","❥","ღ","❣","ꨄ","♡⃛","˚ʚ♡ɞ˚","˚₊· ͟͟͞͞➳❥","♡( ◡‿◡ )",
@@ -99,9 +133,9 @@
     seq: 0,
     addOffset: 0,
     hasBg: false,
-    trayCat: { kaomoji: "하트", sticker: "기호" },
+    trayCat: { emoji: "표정", kaomoji: "하트", sticker: "기호" },
   };
-  const TRAY_DATA = { kaomoji: TEMPLATES, sticker: STICKER_CATS };
+  const TRAY_DATA = { emoji: EMOJI_CATS, kaomoji: TEMPLATES, sticker: STICKER_CATS };
   const history = [];
   const HISTORY_LIMIT = 15;
 
@@ -225,7 +259,7 @@
     objSize.addEventListener("change", pushHistory);
     objRotate.addEventListener("input", (e) => { const o = selected(); if (o) { o.rotation = +e.target.value; updateEl(o); } });
     objRotate.addEventListener("change", pushHistory);
-    objColor.addEventListener("input", (e) => { const o = selected(); if (o && o.kind !== "emoji") { o.color = e.target.value; updateEl(o); } });
+    objColor.addEventListener("input", (e) => { const o = selected(); if (o && o.kind !== "emoji" && o.kind !== "image") { o.color = e.target.value; updateEl(o); } });
     objColor.addEventListener("change", pushHistory);
     objEdit.addEventListener("click", () => { const o = selected(); if (o && o.kind === "text") enterEdit(o); });
     objFront.addEventListener("click", bringFront);
@@ -271,7 +305,7 @@
     Object.values(panels).forEach((p) => (p.hidden = true));
     if (mode === "bg") panels.bg.hidden = false;
     else if (mode === "text") panels.text.hidden = false;
-    else if (mode === "kaomoji" || mode === "sticker") {
+    else if (mode === "emoji" || mode === "kaomoji" || mode === "sticker") {
       panels.tray.hidden = false;
       buildTray(mode);
     }
@@ -310,9 +344,17 @@
     data[active].forEach((ch) => {
       const b = document.createElement("button");
       b.className = "tray-item" + (kind === "kaomoji" ? " wide" : "");
-      b.textContent = ch;
       b.type = "button";
-      b.addEventListener("click", () => addDeco(ch, kind));
+      if (kind === "emoji") {
+        const im = document.createElement("img");
+        im.className = "tw"; im.alt = ch; im.loading = "lazy"; im.src = twemojiUrl(ch);
+        im.addEventListener("error", () => { b.textContent = ch; });   // 실패 시 기기 이모지
+        b.appendChild(im);
+        b.addEventListener("click", () => addEmojiImage(ch));
+      } else {
+        b.textContent = ch;
+        b.addEventListener("click", () => addDeco(ch, kind));
+      }
       trayItems.appendChild(b);
     });
   }
@@ -358,6 +400,24 @@
     enterEdit(obj);
   }
 
+  // Twemoji 이미지 개체 추가 (로드 실패 시 기기 이모지 글자로 대체)
+  function addEmojiImage(ch) {
+    const url = twemojiUrl(ch);
+    const img = new Image();   // 같은 출처(저장소 내 파일)라 crossOrigin 불필요 · 캔버스도 오염 안 됨
+    img.onload = () => {
+      pushHistory();
+      const p = nextPos();
+      const obj = {
+        id: ++state.seq, kind: "image", text: ch, src: url, img,
+        color: "", font: "", x: p.x, y: p.y, size: 190, rotation: 0,
+      };
+      state.objects.push(obj);
+      renderObjects(); markBg(); selectObject(obj.id);
+    };
+    img.onerror = () => addDeco(ch, "sticker");   // CDN 불가 시 기기 이모지 글자 개체
+    img.src = url;
+  }
+
   function addDeco(ch, kind) {
     pushHistory();
     const p = nextPos();
@@ -397,6 +457,13 @@
     span.className = "obj-text";
     el.appendChild(span);
 
+    if (o.kind === "image") {
+      const im = document.createElement("img");
+      im.className = "obj-img"; im.src = o.src; im.alt = o.text || ""; im.draggable = false;
+      im.addEventListener("error", () => { im.remove(); span.textContent = o.text; });  // 실패 시 글자
+      el.appendChild(im);
+    }
+
     const frame = document.createElement("div");
     frame.className = "frame";
     el.appendChild(frame);
@@ -422,10 +489,19 @@
   function updateEl(o, el) {
     el = el || o._el;
     if (!el) return;
-    const span = el.querySelector(".obj-text");
-    if (state.editingId !== o.id) span.textContent = o.text;   // 편집 중엔 캐럿 보존
     el.style.left = o.x + "px";
     el.style.top = o.y + "px";
+    el.style.transform = `translate(-50%,-50%) rotate(${o.rotation}deg)`;
+
+    if (o.kind === "image") {
+      el.style.padding = "0";
+      const im = el.querySelector(".obj-img");
+      if (im) { im.style.width = o.size + "px"; im.style.height = o.size + "px"; }
+      return;
+    }
+
+    const span = el.querySelector(".obj-text");
+    if (state.editingId !== o.id) span.textContent = o.text;   // 편집 중엔 캐럿 보존
     el.style.fontFamily = o.font;
     el.style.fontSize = o.size + "px";
     el.style.color = o.color;
@@ -465,8 +541,8 @@
       objSize.value = Math.round(o.size);
       objRotate.value = Math.round(o.rotation);
       objEdit.hidden = o.kind !== "text";
-      objColorWrap.hidden = o.kind === "emoji";
-      if (o.kind !== "emoji") objColor.value = toHex(o.color);
+      objColorWrap.hidden = o.kind === "emoji" || o.kind === "image";
+      if (!objColorWrap.hidden) objColor.value = toHex(o.color);
       if (o.kind === "text") fontSelect.value = o.font;
     } else {
       panels.selected.hidden = true;
@@ -878,6 +954,13 @@
     octx.save();
     octx.translate(o.x, o.y);
     octx.rotate(o.rotation * Math.PI / 180);
+
+    if (o.kind === "image" && o.img) {
+      const s = o.size;
+      try { octx.drawImage(o.img, -s / 2, -s / 2, s, s); } catch (_) {}
+      octx.restore();
+      return;
+    }
 
     const family = o.kind === "text" ? '"' + o.font + '"' : o.font;
     const weight = o.weight ? o.weight + " " : "";
