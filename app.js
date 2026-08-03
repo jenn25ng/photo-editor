@@ -32,6 +32,9 @@
     "구분선": ["── ⋆⋅☆⋅⋆ ──","∘₊✧──────✧₊∘","·············","━━━━━━━","╴╴╴╴╴╴╴","꒷꒦꒷꒦꒷꒦","─────♡─────","˗ˏˋ ─────── ˎˊ˗","⊹ ࣪ ˖ ─────","•▬▬▬ ✦ ▬▬▬•","∘◦ ✿ ◦∘","═══ ⋆ ═══","·˚ ༘ ────","────★────"],
     "괄호·문장": ["「  」","『  』","〈  〉","《  》","【  】","〔  〕","«  »","❝  ❞","❪  ❫","⌜  ⌟","⌈  ⌉","₍  ₎","⸜  ⸝","⟢  ⟣","┌  ┐","└  ┘"],
     "숫자·마크": ["①","②","③","④","⑤","➀","➁","➂","✓","✔","☑","✕","✖","№","℘","※","➊","➋","➌","㊗","㊙"],
+    "카오모지": ["(๑˃ᴗ˂)ﻭ","( ˶ˆ꒳ˆ˵ )","(｡•ᴗ•｡)","(ᵔᗜᵔ)","(*˘︶˘*)","( ˘ ³˘)♡","(｡>﹏<｡)","(´｡• ᵕ •｡`)","(⁄ ⁄•⁄ω⁄•⁄ ⁄)","(๑˘︶˘๑)","( ⸝⸝•ᴗ•⸝⸝ )","(๑•̀ㅂ•́)و","(｡♥‿♥｡)","(≧◡≦)","(´꒳`)","( ´ ▽ ` )ﾉ","(*ﾉωﾉ)","(⑅˘꒳˘)","૮₍ ˶•⤙•˶ ₎ა","(*ˊᵕˋ*)ノ"],
+    "동물": ["ʕ•ᴥ•ʔ","ʕっ•ᴥ•ʔっ","(=^･ω･^=)","(=ↀωↀ=)","₍ᐢ•ﻌ•ᐢ₎","૮ ˆ•ﻌ•ˆ ა","(・(ｴ)・)","ʕ￫ᴥ￩ʔ","(=˃ᆺ˂=)","ฅ^•ﻌ•^ฅ","(∪｡∪)｡｡｡zzz","(•ө•)♡","(ↀᴥↀ)","ʕ·ᴥ·ʔ","/ᐠ｡ꞈ｡ᐟ\\","(ᵔᴥᵔ)"],
+    "꾸밈기호": ["˚｡⋆","·˚₊‧","‧₊˚✧","⋆˚꩜｡","˚ ༘♡","₊˚⊹","·͜·","꒰ঌ໒꒱","ᕬ","⌗","๑","˖⁺","꒷꒦","⊹ ࣪ ˖","𓂃","𓈒𓏸","•ᴗ•","ꔫ","⟢","⟣"],
   };
 
   // 스티커 (장식용 특수기호) — 키보드로 못 치는 기호 위주
@@ -629,16 +632,51 @@
     for (let i = 1; i <= 9; i++) cm.set(String(i), String.fromCodePoint(0x2460 + i - 1));
     fwd.circle = cm;
 
+    // 작은 대문자 (small caps)
+    const scLetters = [..."ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘꞯʀꜱᴛᴜᴠᴡxʏᴢ"];
+    const sc = new Map();
+    for (let i = 0; i < 26; i++) {
+      sc.set(String.fromCharCode(97 + i), scLetters[i]);
+      sc.set(String.fromCharCode(65 + i), scLetters[i]);
+    }
+    fwd.smallcaps = sc;
+
+    // 고딕 (프락투어) — 일부 대문자는 문자꼴 기호로 보정
+    const frHoles = { C: "ℭ", H: "ℌ", I: "ℑ", R: "ℜ", Z: "ℨ" };
+    const fr = new Map();
+    for (let i = 0; i < 26; i++) {
+      const U = String.fromCharCode(65 + i);
+      fr.set(U, frHoles[U] || String.fromCodePoint(0x1D504 + i));
+      fr.set(String.fromCharCode(97 + i), String.fromCodePoint(0x1D586 + i));
+    }
+    fwd.fraktur = fr;
+
+    // 아웃라인 (더블스트럭)
+    const dsHoles = { C: "ℂ", H: "ℍ", N: "ℕ", P: "ℙ", Q: "ℚ", R: "ℝ", Z: "ℤ" };
+    const ds = new Map();
+    for (let i = 0; i < 26; i++) {
+      const U = String.fromCharCode(65 + i);
+      ds.set(U, dsHoles[U] || String.fromCodePoint(0x1D538 + i));
+      ds.set(String.fromCharCode(97 + i), String.fromCodePoint(0x1D552 + i));
+    }
+    for (let i = 0; i < 10; i++) ds.set(String.fromCharCode(48 + i), String.fromCodePoint(0x1D7D8 + i));
+    fwd.double = ds;
+
     FANCY_FWD = fwd;
     Object.values(fwd).forEach((m) => m.forEach((v, k) => { if (!FANCY_REV.has(v)) FANCY_REV.set(v, k); }));
   })();
 
-  // 문자열을 특정 스타일로 변환 (영문/숫자만 대상, 한글·기호는 그대로) — 이미 변환된 글자는 되돌린 뒤 재변환
+  // 결합 기호 스타일 (취소선/밑줄) — 모든 글자(한글 포함) 뒤에 붙음
+  const COMBINING = { strike: "̶", under: "̲" };
+
+  // 문자열을 특정 스타일로 변환 — 이미 변환된 글자는 되돌린 뒤 재변환
   function toStyle(str, style) {
+    str = str.replace(/[̀-ͯ]/g, "");   // 기존 취소선/밑줄 제거 후
     let out = "";
     for (const ch of str) {
       const base = FANCY_REV.get(ch) || ch;
       if (style === "none") { out += base; continue; }
+      if (COMBINING[style]) { out += base + COMBINING[style]; continue; }
       const m = FANCY_FWD[style];
       out += (m && m.get(base)) || base;
     }
