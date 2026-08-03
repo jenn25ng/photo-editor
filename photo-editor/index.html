@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>꾸미사진</title>
+
+  <!-- 웹폰트 (구글폰트) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>🎨 꾸미사진</h1>
+    <p class="subtitle">인스타에 올리기 전, 사진을 예쁘게 꾸며요</p>
+  </header>
+
+  <main class="app">
+    <!-- ===== 상단 툴바 ===== -->
+    <div class="toolbar">
+      <!-- 배경 / 규격 -->
+      <div class="tool-row">
+        <label class="file-btn">📁 사진
+          <input type="file" id="fileInput" accept="image/*" hidden />
+        </label>
+        <label class="ctrl">배경색
+          <input type="color" id="bgColorInput" value="#ffffff" />
+        </label>
+        <span class="divider"></span>
+        <div class="seg" role="group" aria-label="캔버스 규격">
+          <button class="seg-btn is-active" data-ratio="4:5">피드 4:5</button>
+          <button class="seg-btn" data-ratio="9:16">스토리 9:16</button>
+        </div>
+      </div>
+
+      <!-- 모드 -->
+      <div class="tool-row modes">
+        <button class="mode-btn is-active" data-mode="select">👆 선택</button>
+        <button class="mode-btn" data-mode="pen">✍️ 손글씨</button>
+        <button class="mode-btn" data-mode="text">🔤 텍스트</button>
+        <button class="mode-btn" data-mode="emoji">😊 이모지</button>
+        <button class="mode-btn" data-mode="kaomoji">✨ 템플릿</button>
+        <button class="mode-btn" data-mode="sticker">⭐ 스티커</button>
+      </div>
+
+      <!-- 손글씨(펜) 패널 -->
+      <div class="panel" id="panel-pen" hidden>
+        <label class="ctrl">색<input type="color" id="penColor" value="#ff2d6b" /></label>
+        <label class="ctrl"><span id="penSizeLabel">굵기 14</span>
+          <input type="range" id="penSize" min="2" max="120" value="14" />
+        </label>
+        <button class="btn ghost" id="penEraser">🩹 지우개</button>
+      </div>
+
+      <!-- 텍스트 패널 -->
+      <div class="panel" id="panel-text" hidden>
+        <button class="btn primary" id="addTextBtn">➕ 글자 추가</button>
+        <label class="ctrl">폰트
+          <select id="fontSelect">
+            <option value="Nanum Pen Script" style="font-family:'Nanum Pen Script'">나눔손글씨</option>
+            <option value="Gaegu">개구</option>
+            <option value="Gamja Flower">감자꽃</option>
+            <option value="Jua">주아</option>
+            <option value="Do Hyeon">도현</option>
+            <option value="Noto Sans KR">고딕</option>
+            <option value="Pacifico">Pacifico</option>
+            <option value="Lobster">Lobster</option>
+          </select>
+        </label>
+        <label class="ctrl">색<input type="color" id="textColor" value="#222222" /></label>
+      </div>
+
+      <!-- 이모지 / 템플릿 / 스티커 트레이 -->
+      <div class="panel tray" id="panel-tray" hidden>
+        <div class="tray-cats" id="trayCats"></div>
+        <div class="tray-items" id="trayItems"></div>
+      </div>
+
+      <!-- 선택된 개체 편집 패널 -->
+      <div class="panel selected-panel" id="panel-selected" hidden>
+        <span class="sel-label">선택됨</span>
+        <label class="ctrl"><span>크기</span>
+          <input type="range" id="objSize" min="16" max="600" value="120" />
+        </label>
+        <label class="ctrl"><span>회전</span>
+          <input type="range" id="objRotate" min="-180" max="180" value="0" />
+        </label>
+        <label class="ctrl" id="objColorWrap" hidden>색<input type="color" id="objColor" value="#222222" /></label>
+        <button class="btn" id="objEdit" hidden>✏️ 편집</button>
+        <button class="btn" id="objFront">⬆️ 맨앞</button>
+        <button class="btn danger" id="objDelete">🗑️ 삭제</button>
+      </div>
+
+      <!-- 공통 액션 -->
+      <div class="tool-row actions">
+        <button class="btn" id="undoBtn">↩️ 되돌리기</button>
+        <button class="btn" id="clearBtn">🧹 전체 지우기</button>
+        <button class="btn primary" id="downloadBtn">⬇️ 저장</button>
+      </div>
+    </div>
+
+    <!-- ===== 캔버스 무대 ===== -->
+    <div class="stage-scroll" id="stageScroll">
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage-inner" id="stageInner">
+          <canvas id="bgCanvas"></canvas>
+          <canvas id="drawCanvas"></canvas>
+          <div class="objects-layer" id="objectsLayer"></div>
+          <div class="empty-hint" id="emptyHint">
+            <div class="empty-emoji">🖼️</div>
+            <p>사진을 열거나<br />배경색을 골라 시작하세요</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    손글씨는 드래그, 개체는 <b>선택</b>모드에서 이동·크기·회전 · 저장은 1080px 고해상도
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
