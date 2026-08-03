@@ -9,9 +9,19 @@
   const MOODS = ["😊", "🥰", "😆", "😌", "😴", "😭", "🤒", "😳"];
   const WEATHERS = ["☀️", "⛅", "☁️", "🌧️", "⛈️", "❄️", "🌈", "🌙"];
 
-  const SERIF = '"Cormorant Garamond","Noto Serif KR",Georgia,serif';
   const SANS  = '"Noto Sans KR",sans-serif';
-  const PEN   = '"Nanum Pen Script",cursive';
+  const SUB   = '"Noto Sans KR",sans-serif';
+
+  // 글씨 무드: 이름(name) / 포인트 한마디(point)
+  const FONT_THEMES = {
+    serif:  { nameFam: '"Noto Serif KR",serif',    nameW: 600, ptFam: '"Gowun Batang","Noto Serif KR",serif', ptW: 700, ptScale: 0.92 },
+    hand:   { nameFam: '"Jua",sans-serif',         nameW: 400, ptFam: '"Gaegu",cursive',                      ptW: 700, ptScale: 1.04 },
+    gothic: { nameFam: '"Gowun Dodum",sans-serif', nameW: 400, ptFam: '"Gowun Dodum",sans-serif',             ptW: 400, ptScale: 0.8 },
+  };
+  let TH = FONT_THEMES.serif;
+  const fName  = (s) => `${TH.nameW} ${Math.round(s)}px ${TH.nameFam}`;
+  const fPoint = (s) => `${TH.ptW} ${Math.round(s * TH.ptScale)}px ${TH.ptFam}`;
+  const fSub   = (s, w = 600) => `${w} ${Math.round(s)}px ${SUB}`;
 
   const INK = "#3b342b", MUTED = "#9a8f7d", PAPER = "#faf6ee", CARD = "#fffdf9";
   const ACCENT = "#7f9469";
@@ -20,7 +30,7 @@
   const canvas = $("card"), ctx = canvas.getContext("2d");
 
   const state = {
-    ratio: "4:5", layout: "band",
+    ratio: "4:5", layout: "band", fontMood: "serif",
     photo: null, name: "", birth: "", mood: "😊", weather: "☀️", point: "", memo: "",
   };
   let W = 1080, H = 1350;
@@ -69,6 +79,12 @@
         setActive(b, "[data-layout]");
         render();
       }));
+    document.querySelectorAll("[data-font]").forEach((b) =>
+      b.addEventListener("click", () => {
+        state.fontMood = b.dataset.font;
+        setActive(b, "[data-font]");
+        render();
+      }));
 
     $("downloadBtn").addEventListener("click", download);
     $("shareBtn").addEventListener("click", share);
@@ -115,6 +131,7 @@
 
   // ---------- 렌더 ----------
   function render() {
+    TH = FONT_THEMES[state.fontMood] || FONT_THEMES.serif;
     const r = RATIOS[state.ratio]; W = r.w; H = r.h;
     canvas.width = W; canvas.height = H;
     ctx.clearRect(0, 0, W, H);
@@ -188,28 +205,23 @@
     ctx.fillStyle = gt; ctx.fillRect(0, 0, W, H * 0.2);
 
     const pad = 76;
-    // 날짜 pill (좌상단)
     drawPill(pad, pad, todayStr());
-    // 기분·날씨 (우상단)
-    ctx.textAlign = "right"; ctx.textBaseline = "top";
-    ctx.font = `72px ${SANS}`;
-    ctx.fillText(emojiPair(), W - pad, pad - 4);
 
-    // 하단 텍스트
     ctx.textAlign = "left";
     shadowOn();
-    // 이름 · 나이 (작게, 맨 아래)
+    // 이름 · 나이 · 기분/날씨 (한 줄, 맨 아래)
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "rgba(255,255,255,0.94)";
-    ctx.font = `700 40px ${SANS}`;
-    const info = nameOr() + (ageShort() ? "  ·  " + ageShort() : "");
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.font = fSub(40, 700);
+    const info = nameOr() + (ageShort() ? "  ·  " + ageShort() : "") + "   " + emojiPair();
     ctx.fillText(info, pad, H - pad);
-    // 포인트 한마디 (손글씨, 크게, 위로)
+    // 포인트 한마디 (무드 폰트, 위로)
     ctx.fillStyle = "#fff";
-    ctx.font = `104px ${PEN}`;
+    ctx.font = fPoint(102);
+    const lh = Math.round(102 * TH.ptScale * 1.06);
     const lines = wrapLines(state.point || "오늘도 사랑스러운 하루", W - pad * 2, 2);
-    let y = H - pad - 66;
-    for (let i = lines.length - 1; i >= 0; i--) { ctx.fillText(lines[i], pad, y); y -= 108; }
+    let y = H - pad - 62;
+    for (let i = lines.length - 1; i >= 0; i--) { ctx.fillText(lines[i], pad, y); y -= lh; }
     shadowOff();
   }
   function drawPill(x, y, text) {
@@ -244,19 +256,15 @@
     if (state.photo) drawCover(state.photo, x + border, y + border, photo, photo, 4);
     else placeholder(x + border, y + border, photo, photo, 4);
 
-    // 기분·날씨 (사진 우상단 스티커)
-    ctx.textAlign = "right"; ctx.textBaseline = "top"; ctx.font = `58px ${SANS}`;
-    ctx.fillText(emojiPair(), x + border + photo - 14, y + border + 14);
-
     // 하단 스트립 텍스트
     const sx = x + CW / 2, sy = y + border + photo;
     ctx.textAlign = "center";
     ctx.fillStyle = INK; ctx.textBaseline = "middle";
-    ctx.font = `84px ${PEN}`;
+    ctx.font = fPoint(84);
     const pt = wrapLines(state.point || "오늘도 사랑스러운 하루", CW - border * 2, 1)[0];
     ctx.fillText(pt, sx, sy + strip * 0.4);
-    ctx.fillStyle = MUTED; ctx.font = `600 30px ${SANS}`;
-    const info = nameOr() + (ageShort() ? "  ·  " + ageShort() : "") + "   " + todayStr();
+    ctx.fillStyle = MUTED; ctx.font = fSub(30, 600);
+    const info = nameOr() + (ageShort() ? "  ·  " + ageShort() : "") + "   " + emojiPair();
     ctx.fillText(info, sx, sy + strip * 0.76);
 
     ctx.restore();
@@ -274,28 +282,25 @@
     roundRectPath(pad, py, pw, ph, 26); ctx.stroke();
 
     let ty = py + ph + pad * 0.72;
-    ctx.textAlign = "left";
-    // 날짜 · 기분날씨
-    ctx.fillStyle = MUTED; ctx.textBaseline = "alphabetic";
-    ctx.font = `500 30px ${SANS}`;
-    ctx.fillText(todayStr(), pad, ty);
-    ctx.textAlign = "right"; ctx.font = `46px ${SANS}`;
-    ctx.fillText(emojiPair(), W - pad, ty + 6);
-    ctx.textAlign = "left";
-    ty += 74;
-    // 이름 (세리프)
-    ctx.fillStyle = INK; ctx.font = `600 66px ${SERIF}`;
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    // 날짜 · 기분/날씨 (한 줄)
+    ctx.fillStyle = MUTED; ctx.font = fSub(30, 500);
+    ctx.fillText(todayStr() + "     " + emojiPair(), pad, ty);
+    ty += 78;
+    // 이름 (무드 폰트)
+    ctx.fillStyle = INK; ctx.font = fName(66);
     ctx.fillText(nameOr(), pad, ty);
-    ty += 52;
+    ty += 54;
     // 나이
     if (ageLong()) {
-      ctx.fillStyle = ACCENT; ctx.font = `600 32px ${SANS}`;
-      ctx.fillText(ageLong(), pad, ty); ty += 60;
-    } else { ty += 20; }
-    // 포인트 (손글씨)
-    ctx.fillStyle = INK; ctx.font = `72px ${PEN}`;
+      ctx.fillStyle = ACCENT; ctx.font = fSub(32, 600);
+      ctx.fillText(ageLong(), pad, ty); ty += 62;
+    } else { ty += 22; }
+    // 포인트 (무드 폰트)
+    ctx.fillStyle = INK; ctx.font = fPoint(70);
+    const lh = Math.round(70 * TH.ptScale * 1.08);
     wrapLines(state.point || "오늘도 사랑스러운 하루", pw, 2).forEach((ln) => {
-      ctx.fillText(ln, pad, ty); ty += 76;
+      ctx.fillText(ln, pad, ty); ty += lh;
     });
   }
 
