@@ -8,14 +8,15 @@
   <!-- 웹폰트 (구글폰트) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&family=Black+Han+Sans&family=Nanum+Brush+Script&family=Hi+Melody&family=Poor+Story&family=Song+Myung&family=Gowun+Dodum&family=Nanum+Gothic+Coding&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Sacramento&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gamja+Flower&family=Do+Hyeon&family=Pacifico&family=Lobster&family=Black+Han+Sans&family=Nanum+Brush+Script&family=Hi+Melody&family=Poor+Story&family=Song+Myung&family=Gowun+Dodum&family=Nanum+Gothic+Coding&family=Montserrat:wght@400;700;900&family=Bebas+Neue&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Sacramento&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="app-header">
-    <h1>🎨 꾸미사진</h1>
-    <p class="subtitle">인스타에 올리기 전, 사진을 예쁘게 꾸며요</p>
+    <p class="eyebrow">Photo&nbsp;·&nbsp;Atelier</p>
+    <h1>꾸미사진</h1>
+    <p class="subtitle">인스타 감성으로 사진을 꾸미는 에디터</p>
   </header>
 
   <main class="app">
@@ -23,7 +24,7 @@
     <div class="toolbar">
       <!-- 배경 / 규격 -->
       <div class="tool-row">
-        <label class="file-btn">📁 사진
+        <label class="file-btn">사진 열기
           <input type="file" id="fileInput" accept="image/*" hidden />
         </label>
         <label class="ctrl">배경색
@@ -38,13 +39,12 @@
 
       <!-- 모드 -->
       <div class="tool-row modes">
-        <button class="mode-btn is-active" data-mode="select">👆 선택</button>
-        <button class="mode-btn" data-mode="bg">🖼️ 배경조정</button>
-        <button class="mode-btn" data-mode="pen">✍️ 손글씨</button>
-        <button class="mode-btn" data-mode="text">🔤 텍스트</button>
-        <button class="mode-btn" data-mode="emoji">😊 이모지</button>
-        <button class="mode-btn" data-mode="kaomoji">✨ 템플릿</button>
-        <button class="mode-btn" data-mode="sticker">⭐ 스티커</button>
+        <button class="mode-btn is-active" data-mode="select">선택</button>
+        <button class="mode-btn" data-mode="bg">배경</button>
+        <button class="mode-btn" data-mode="pen">손글씨</button>
+        <button class="mode-btn" data-mode="text">텍스트</button>
+        <button class="mode-btn" data-mode="kaomoji">템플릿</button>
+        <button class="mode-btn" data-mode="sticker">스티커</button>
       </div>
 
       <!-- 배경 사진 조정 패널 -->
@@ -52,8 +52,8 @@
         <label class="ctrl"><span id="bgZoomLabel">확대 1.0x</span>
           <input type="range" id="bgZoom" min="100" max="300" value="100" />
         </label>
-        <button class="btn ghost" id="bgReset">↺ 초기화</button>
-        <span class="ctrl">👆 드래그로 이동 · 🤏 두 손가락으로 확대</span>
+        <button class="btn ghost" id="bgReset">초기화</button>
+        <span class="ctrl">드래그로 이동 · 두 손가락으로 확대</span>
       </div>
 
       <!-- 손글씨(펜) 패널 -->
@@ -62,7 +62,7 @@
         <label class="ctrl"><span id="penSizeLabel">굵기 14</span>
           <input type="range" id="penSize" min="2" max="120" value="14" />
         </label>
-        <button class="btn ghost" id="penEraser">🩹 지우개</button>
+        <button class="btn ghost" id="penEraser">지우개</button>
       </div>
 
       <!-- 텍스트 패널 -->
@@ -75,7 +75,7 @@
           <button class="preset-btn is-type" data-preset="typewriter" type="button">타자기</button>
           <button class="preset-btn is-strong" data-preset="strong" type="button">스트롱</button>
         </div>
-        <button class="btn primary" id="addTextBtn">➕ 글자 추가</button>
+        <button class="btn primary" id="addTextBtn">글자 추가</button>
         <label class="ctrl">폰트
           <select id="fontSelect">
             <optgroup label="손글씨 · 귀여움">
@@ -127,17 +127,17 @@
           <input type="range" id="objRotate" min="-180" max="180" value="0" />
         </label>
         <label class="ctrl" id="objColorWrap" hidden>색<input type="color" id="objColor" value="#222222" /></label>
-        <button class="btn" id="objEdit" hidden>✏️ 편집</button>
-        <button class="btn" id="objFront">⬆️ 맨앞</button>
-        <button class="btn danger" id="objDelete">🗑️ 삭제</button>
+        <button class="btn" id="objEdit" hidden>편집</button>
+        <button class="btn" id="objFront">맨 앞으로</button>
+        <button class="btn danger" id="objDelete">삭제</button>
       </div>
 
       <!-- 공통 액션 -->
       <div class="tool-row actions">
-        <button class="btn" id="undoBtn">↩️ 되돌리기</button>
-        <button class="btn" id="clearBtn">🧹 전체 지우기</button>
-        <button class="btn" id="downloadBtn">⬇️ 저장</button>
-        <button class="btn primary" id="shareBtn">📤 인스타 공유</button>
+        <button class="btn" id="undoBtn">되돌리기</button>
+        <button class="btn" id="clearBtn">전체 지우기</button>
+        <button class="btn" id="downloadBtn">저장</button>
+        <button class="btn primary" id="shareBtn">인스타 공유</button>
       </div>
     </div>
 
@@ -149,8 +149,8 @@
           <canvas id="drawCanvas"></canvas>
           <div class="objects-layer" id="objectsLayer"></div>
           <div class="empty-hint" id="emptyHint">
-            <div class="empty-emoji">🖼️</div>
-            <p>사진을 열거나<br />배경색을 골라 시작하세요</p>
+            <p class="empty-title">Blank Canvas</p>
+            <p>위에서 <b>사진 열기</b> 또는 <b>배경색</b>을<br />선택해 시작해 보세요</p>
           </div>
         </div>
       </div>
@@ -166,7 +166,16 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="textModalTitle">
       <label class="modal-title" id="textModalTitle" for="textArea">텍스트 입력 (여러 줄 가능)</label>
       <textarea id="textArea" rows="3" placeholder="내용을 입력하세요&#10;Enter로 줄바꿈"></textarea>
-      <p class="modal-hint">💡 <b>Enter</b>로 줄바꿈 · <b>Ctrl/⌘+Enter</b>로 확인</p>
+      <div class="fancy-row" id="fancyRow" aria-label="글씨 변환 (영문·숫자)">
+        <span class="field-label">글씨 변환</span>
+        <button class="fancy-btn" data-fancy="none" type="button">Aa 기본</button>
+        <button class="fancy-btn" data-fancy="bold" type="button">𝐀𝐚</button>
+        <button class="fancy-btn" data-fancy="bolditalic" type="button">𝑨𝒂</button>
+        <button class="fancy-btn" data-fancy="mono" type="button">𝙰𝚊</button>
+        <button class="fancy-btn" data-fancy="circle" type="button">Ⓐⓐ</button>
+        <button class="fancy-btn" data-fancy="full" type="button">Ａａ</button>
+      </div>
+      <p class="modal-hint">💡 영문·숫자를 다른 글씨로 · <b>Enter</b> 줄바꿈 · <b>Ctrl/⌘+Enter</b> 확인</p>
       <div class="modal-actions">
         <button class="btn" id="textCancel" type="button">취소</button>
         <button class="btn primary" id="textOk" type="button">확인</button>

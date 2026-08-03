@@ -15,19 +15,6 @@
   const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   const SYMBOL_FONT = '"Noto Sans KR","Apple SD Gothic Neo",sans-serif';
 
-  // 이모지 (아이폰에서는 애플 이모지로 렌더됨) — 카테고리별
-  const EMOJI_CATS = {
-    "표정": ["😀","😄","😆","🥹","😍","🥰","😘","😗","😙","😚","🤗","🤭","😎","🤩",
-      "🥳","😏","😉","😜","😋","🤔","🙄","😶","😴","😪","😭","😢","🥺","😳","😱","🤯","😤","🥱","🙈","🙉","🙊"],
-    "하트": ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💖","💗","💓","💞","💕",
-      "💘","💝","💟","❣️","💔","♥️","♡","💌","💋","😻"],
-    "반짝": ["✨","⭐","🌟","💫","⚡","🔥","🌈","☀️","🌙","⛅","☁️","❄️","💥","💦","💨","🎆","🎇","🪄","👑","💎"],
-    "자연": ["🌸","🌺","🌷","🌹","🌻","🌼","💐","🌿","🍀","🍃","🌱","🌴","🌊","🍄","🐚","🌍","🌝","🌚","🪷"],
-    "음식": ["🍓","🍒","🍑","🍎","🍊","🍋","🍉","🍇","🍏","🥝","🍰","🧁","🍩","🍪","🍭","🍬","🍫","🍦","☕","🧋","🍾","🥂","🍷"],
-    "동물": ["🐶","🐱","🐰","🐻","🐼","🐨","🦊","🐯","🦁","🐸","🐥","🐤","🐧","🦋","🐝","🐬","🐳","🦄","🐢"],
-    "기타": ["🎀","🎁","🎉","🎊","🎈","💯","✅","❌","❗","❓","💤","💢","🎧","🎵","🎶","📸","📷","👍","👏","🙌","🤳","✌️","🤟","💪"],
-  };
-
   // 감성 특수문자 템플릿 (유니코드 조합, 자유 사용 가능) — 카테고리별
   const TEMPLATES = {
     "하트": ["♡","❤","♥","❥","ღ","❣","ꨄ","♡⃛","˚ʚ♡ɞ˚","˚₊· ͟͟͞͞➳❥","♡( ◡‿◡ )",
@@ -42,14 +29,15 @@
       "(>ω<)","(っ˘ω˘ς )","(｡♡‿♡｡)","(◍•ᴗ•◍)","( ˶ˆ꒳ˆ˵ )","ʕ•ᴥ•ʔ","(*ˊᵕˋ*)","(◡‿◡)","˶ᵔ ᵕ ᵔ˶","( ｡•̀ ᴗ - )✧","꒰๑ ᵔ ᵕ ᵔ ๑꒱","(⑉˃̶᷄꒳˂̶᷅⑉)"],
     "감성": ["⊹ ࣪ ˖","࣪ ˖ ✿","‧₊˚ ⋅","˚ ༘ ೀ⋆｡˚","𓂃 ࣪˖","ꕥ","๑","⌇","❪ ❫","⸝⸝",".ᐟ",
       "ᯓ★","⟢","⟣","𓄼","𓏸","𓂅","◠‿◠","❥•*¨*•.¸¸♪","·͙*̩̩͙˚̩̥̩̥*̩̩̥͙"],
+    "구분선": ["── ⋆⋅☆⋅⋆ ──","∘₊✧──────✧₊∘","·············","━━━━━━━","╴╴╴╴╴╴╴","꒷꒦꒷꒦꒷꒦","─────♡─────","˗ˏˋ ─────── ˎˊ˗","⊹ ࣪ ˖ ─────","•▬▬▬ ✦ ▬▬▬•","∘◦ ✿ ◦∘","═══ ⋆ ═══","·˚ ༘ ────","────★────"],
+    "괄호·문장": ["「  」","『  』","〈  〉","《  》","【  】","〔  〕","«  »","❝  ❞","❪  ❫","⌜  ⌟","⌈  ⌉","₍  ₎","⸜  ⸝","⟢  ⟣","┌  ┐","└  ┘"],
+    "숫자·마크": ["①","②","③","④","⑤","➀","➁","➂","✓","✔","☑","✕","✖","№","℘","※","➊","➋","➌","㊗","㊙"],
   };
 
-  // 스티커 (장식용 이모지/기호)
+  // 스티커 (장식용 특수기호) — 키보드로 못 치는 기호 위주
   const STICKER_CATS = {
-    "기본": ["💯","✅","❌","⭕","❗","❓","💤","💢","💦","💨","🕊️","🌊","🎧","🎵","🎶",
-      "📸","📷","🎂","🍾","🥂","🎈","🪄","🩷","🫧","🌷","🔖","💬","🗯️"],
-    "기호": ["★","☆","♥","♡","✦","✧","❤","➳","➤","♪","♫","☑","✔","✿","❀","⚘","❁",
-      "☾","☼","✪","⌘","☕","❄","✵","✷","❖","◆","◇","♢"],
+    "기호": ["★","☆","♥","♡","✦","✧","❥","➳","➤","♪","♫","☑","✔","✿","❀","⚘","❁",
+      "☾","☼","✪","⌘","❄","✵","✷","❖","◆","◇","♢","⟡","⊹","✩","⋆","๑","♬","⌇"],
   };
 
   // 인스타 스토리 스타일 프리셋 (폰트 + 스타일 조합) — 모두 무료 폰트/CSS 효과
@@ -111,9 +99,9 @@
     seq: 0,
     addOffset: 0,
     hasBg: false,
-    trayCat: { emoji: "표정", kaomoji: "하트", sticker: "기본" },
+    trayCat: { kaomoji: "하트", sticker: "기호" },
   };
-  const TRAY_DATA = { emoji: EMOJI_CATS, kaomoji: TEMPLATES, sticker: STICKER_CATS };
+  const TRAY_DATA = { kaomoji: TEMPLATES, sticker: STICKER_CATS };
   const history = [];
   const HISTORY_LIMIT = 15;
 
@@ -125,7 +113,7 @@
   // =========================================================
   function init() {
     applyRatio(state.ratio, true);
-    buildTray("emoji");
+    buildTray("kaomoji");
     bindUI();
     setMode("select");
     fitStage();
@@ -224,6 +212,8 @@
     addTextBtn.addEventListener("click", addText);
     Array.from(document.querySelectorAll(".preset-btn")).forEach((b) =>
       b.addEventListener("click", () => addTextWithPreset(b.dataset.preset)));
+    Array.from(document.querySelectorAll(".fancy-btn")).forEach((b) =>
+      b.addEventListener("click", () => { textArea.value = toStyle(textArea.value, b.dataset.fancy); textArea.focus(); }));
     fontSelect.addEventListener("change", (e) => {
       state.font = e.target.value;
       const o = selected();
@@ -297,7 +287,7 @@
     if (mode === "bg") panels.bg.hidden = false;
     else if (mode === "pen") panels.pen.hidden = false;
     else if (mode === "text") panels.text.hidden = false;
-    else if (mode === "emoji" || mode === "kaomoji" || mode === "sticker") {
+    else if (mode === "kaomoji" || mode === "sticker") {
       panels.tray.hidden = false;
       buildTray(mode);
     }
@@ -628,6 +618,52 @@
       textModal.addEventListener("pointerdown", onBackdrop);
       textArea.addEventListener("keydown", onKey);
     });
+  }
+
+  // ---------- 글씨 변환 (유니코드 특수 글꼴) ----------
+  let FANCY_FWD = {};
+  const FANCY_REV = new Map();
+  (function buildFancy() {
+    const ranges = {
+      bold:       [0x1D400, 0x1D41A, 0x1D7CE],
+      bolditalic: [0x1D468, 0x1D482, 0x1D7CE],
+      mono:       [0x1D670, 0x1D68A, 0x1D7F6],
+      full:       [0xFF21,  0xFF41,  0xFF10],
+    };
+    const fwd = {};
+    Object.keys(ranges).forEach((st) => {
+      const [U, L, D] = ranges[st]; const m = new Map();
+      for (let i = 0; i < 26; i++) {
+        m.set(String.fromCharCode(65 + i), String.fromCodePoint(U + i));
+        m.set(String.fromCharCode(97 + i), String.fromCodePoint(L + i));
+      }
+      for (let i = 0; i < 10; i++) m.set(String.fromCharCode(48 + i), String.fromCodePoint(D + i));
+      fwd[st] = m;
+    });
+    // 원문자 (동그라미)
+    const cm = new Map();
+    for (let i = 0; i < 26; i++) {
+      cm.set(String.fromCharCode(65 + i), String.fromCodePoint(0x24B6 + i));
+      cm.set(String.fromCharCode(97 + i), String.fromCodePoint(0x24D0 + i));
+    }
+    cm.set("0", "⓪");
+    for (let i = 1; i <= 9; i++) cm.set(String(i), String.fromCodePoint(0x2460 + i - 1));
+    fwd.circle = cm;
+
+    FANCY_FWD = fwd;
+    Object.values(fwd).forEach((m) => m.forEach((v, k) => { if (!FANCY_REV.has(v)) FANCY_REV.set(v, k); }));
+  })();
+
+  // 문자열을 특정 스타일로 변환 (영문/숫자만 대상, 한글·기호는 그대로) — 이미 변환된 글자는 되돌린 뒤 재변환
+  function toStyle(str, style) {
+    let out = "";
+    for (const ch of str) {
+      const base = FANCY_REV.get(ch) || ch;
+      if (style === "none") { out += base; continue; }
+      const m = FANCY_FWD[style];
+      out += (m && m.get(base)) || base;
+    }
+    return out;
   }
   function deleteSelected() {
     const o = selected();
