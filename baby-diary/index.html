@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>오늘의 아이 — 하루 기록 카드</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Jua&family=Gowun+Dodum&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <p class="eyebrow">Our Baby&nbsp;·&nbsp;Today</p>
+    <h1>오늘의 아이</h1>
+    <p class="subtitle">우리 아이의 하루를 기록하고, 예쁜 카드로 인스타에 올려요</p>
+  </header>
+
+  <main class="app">
+    <!-- ===== 미리보기 카드 ===== -->
+    <section class="preview">
+      <div class="card-wrap" id="cardWrap">
+        <canvas id="card"></canvas>
+      </div>
+
+      <div class="preview-controls">
+        <div class="seg" role="group" aria-label="카드 규격">
+          <button class="seg-btn is-active" data-ratio="4:5" type="button">피드 4:5</button>
+          <button class="seg-btn" data-ratio="9:16" type="button">스토리 9:16</button>
+        </div>
+        <div class="seg" role="group" aria-label="카드 시안">
+          <button class="seg-btn is-active" data-layout="band" type="button">밴드</button>
+          <button class="seg-btn" data-layout="polaroid" type="button">폴라로이드</button>
+          <button class="seg-btn" data-layout="minimal" type="button">미니멀</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 입력 폼 ===== -->
+    <section class="panel">
+      <h2 class="panel-title">하루 기록</h2>
+
+      <label class="field file-field">
+        <span class="field-label">사진</span>
+        <span class="file-btn" id="fileBtnLabel">사진 올리기</span>
+        <input type="file" id="fileInput" accept="image/*" hidden />
+      </label>
+
+      <div class="grid-2">
+        <label class="field">
+          <span class="field-label">아이 이름</span>
+          <input type="text" id="nameInput" placeholder="예: 하윤" maxlength="20" />
+        </label>
+        <label class="field">
+          <span class="field-label">생년월일</span>
+          <input type="date" id="birthInput" />
+        </label>
+      </div>
+
+      <div class="field">
+        <span class="field-label">오늘의 기분</span>
+        <div class="emoji-pick" id="moodPick"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">오늘의 날씨</span>
+        <div class="emoji-pick" id="weatherPick"></div>
+      </div>
+
+      <label class="field">
+        <span class="field-label">사진 위 한마디 <em>(카드에 표시)</em></span>
+        <input type="text" id="pointInput" placeholder="예: 첫 이유식 성공!" maxlength="40" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">오늘의 메모 <em>(인스타 글 내용으로)</em></span>
+        <textarea id="memoInput" rows="4" placeholder="오늘 있었던 일, 느낌을 자유롭게 적어요"></textarea>
+      </label>
+    </section>
+
+    <!-- ===== 자동 캡션 ===== -->
+    <section class="panel">
+      <div class="caption-head">
+        <h2 class="panel-title">인스타 캡션 <span class="muted-note">(자동 생성)</span></h2>
+        <button class="btn ghost" id="copyBtn" type="button">복사</button>
+      </div>
+      <textarea id="captionOut" class="caption-out" rows="7" readonly></textarea>
+    </section>
+
+    <!-- ===== 액션 ===== -->
+    <div class="actions">
+      <button class="btn" id="downloadBtn" type="button">카드 저장</button>
+      <button class="btn primary" id="shareBtn" type="button">인스타 공유</button>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    카드엔 <b>포인트만</b>, 자세한 이야기는 <b>캡션</b>에 · 저장은 1080px 고해상도 ·
+    <a href="../index.html">꾸미사진 에디터로 →</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
