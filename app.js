@@ -164,8 +164,8 @@
 
   function fitStage() {
     const pad = 26;
-    const availW = Math.min((stageScroll.clientWidth || window.innerWidth) - pad, 520);
-    const availH = Math.max(window.innerHeight - 300, 320);
+    const availW = Math.min((stageScroll.clientWidth || window.innerWidth) - pad, 600);
+    const availH = Math.max(window.innerHeight - 250, 340);
     const scale = Math.min(availW / CW, availH / CH);
     stageInner.style.transform = `scale(${scale})`;
     stageInner.style.setProperty("--stage-scale", scale);
