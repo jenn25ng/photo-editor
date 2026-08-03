@@ -137,6 +137,7 @@
     ctx.clearRect(0, 0, W, H);
     if (state.layout === "polaroid") layoutPolaroid();
     else if (state.layout === "minimal") layoutMinimal();
+    else if (state.layout === "diary") layoutDiary();
     else layoutBand();
     buildCaption();
   }
@@ -302,6 +303,76 @@
     wrapLines(state.point || "오늘도 사랑스러운 하루", pw, 2).forEach((ln) => {
       ctx.fillText(ln, pad, ty); ty += lh;
     });
+  }
+
+  // ---------- 레이아웃: 그림일기 (옛날 그림일기장 양식) ----------
+  function layoutDiary() {
+    fillPaper();
+    const pad = W * 0.07;
+    const right = W - pad;
+    let y = pad;
+
+    // 헤더 박스: 날짜·요일 | 날씨 | 기분
+    const headH = W * 0.135;
+    ctx.strokeStyle = "rgba(59,52,43,0.30)"; ctx.lineWidth = 3;
+    roundRectPath(pad, y, W - pad * 2, headH, 14); ctx.stroke();
+    const x1 = pad + (W - pad * 2) * 0.56, x2 = pad + (W - pad * 2) * 0.78;
+    ctx.beginPath();
+    ctx.moveTo(x1, y + 10); ctx.lineTo(x1, y + headH - 10);
+    ctx.moveTo(x2, y + 10); ctx.lineTo(x2, y + headH - 10); ctx.stroke();
+    // 날짜/요일
+    const d = new Date(); const dow = "일월화수목금토"[d.getDay()];
+    ctx.fillStyle = INK; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+    ctx.font = fSub(36, 600);
+    ctx.fillText(`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${dow})`, pad + 28, y + headH / 2);
+    // 날씨 / 기분
+    ctx.textAlign = "center";
+    const cellMid1 = (x1 + x2) / 2, cellMid2 = (x2 + right) / 2;
+    ctx.fillStyle = MUTED; ctx.font = fSub(24, 700);
+    ctx.fillText("날씨", cellMid1, y + headH * 0.32);
+    ctx.fillText("기분", cellMid2, y + headH * 0.32);
+    ctx.fillStyle = INK; ctx.font = `44px ${SANS}`;
+    ctx.fillText(state.weather, cellMid1, y + headH * 0.66);
+    ctx.fillText(state.mood, cellMid2, y + headH * 0.66);
+    y += headH + pad * 0.5;
+
+    // 이름 · 나이
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = ACCENT; ctx.font = fSub(30, 700);
+    ctx.fillText(nameOr() + (ageShort() ? "  ·  " + ageShort() : ""), pad, y + 22);
+    y += 50;
+
+    // 그림(사진) 칸
+    const picH = W * 0.54;
+    if (state.photo) drawCover(state.photo, pad, y, W - pad * 2, picH, 12);
+    else placeholder(pad, y, W - pad * 2, picH, 12);
+    ctx.strokeStyle = "rgba(59,52,43,0.30)"; ctx.lineWidth = 3;
+    roundRectPath(pad, y, W - pad * 2, picH, 12); ctx.stroke();
+    y += picH + pad * 0.5;
+
+    // 제목(포인트 한마디)
+    if (state.point.trim()) {
+      ctx.fillStyle = INK; ctx.font = fPoint(56); ctx.textAlign = "left";
+      ctx.fillText("“" + state.point.trim() + "”", pad, y + 44);
+      y += 76;
+    }
+
+    // 줄 친 글쓰기 칸 + 메모
+    const gap = 62;
+    ctx.font = fPoint(40);
+    const memo = state.memo.trim();
+    const lines = wrapLines(memo || "오늘 우리 아이의 하루를 적어보세요", W - pad * 2, 30);
+    let ly = y, li = 0;
+    while (ly + gap <= H - pad * 0.7) {
+      ctx.strokeStyle = "rgba(59,52,43,0.13)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(pad, ly + gap * 0.78); ctx.lineTo(right, ly + gap * 0.78); ctx.stroke();
+      if (li < lines.length) {
+        ctx.fillStyle = memo ? INK : MUTED;
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+        ctx.fillText(lines[li], pad + 4, ly + gap * 0.56);
+      }
+      li++; ly += gap;
+    }
   }
 
   // ---------- 캡션 ----------
