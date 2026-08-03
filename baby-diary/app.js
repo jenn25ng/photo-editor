@@ -323,38 +323,25 @@
     y += 50;
 
     // 그림(사진) 칸
-    const picH = W * 0.54;
+    const picH = W * 0.62;
     if (state.photo) drawCover(state.photo, pad, y, W - pad * 2, picH, 12);
     else placeholder(pad, y, W - pad * 2, picH, 12);
     ctx.strokeStyle = "rgba(59,52,43,0.30)"; ctx.lineWidth = 3;
     roundRectPath(pad, y, W - pad * 2, picH, 12); ctx.stroke();
     y += picH + pad * 0.5;
 
-    // 제목(포인트 한마디) — 코랄 크레파스
-    if (state.point.trim()) {
-      ctx.font = crayonFont(60); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = crayonPattern(206, 96, 78);
-      ctx.fillText("“" + state.point.trim() + "”", pad, y + 46);
-      y += 82;
-    }
-
-    // 줄 친 글쓰기 칸 + 메모 — 갈색 크레파스 손글씨
-    const gap = 66;
-    ctx.font = crayonFont(44);
-    const memo = state.memo.trim();
-    const lines = wrapLines(memo || "오늘 우리 아이의 하루를 적어보세요", W - pad * 2, 30);
-    let ly = y, li = 0;
-    while (ly + gap <= H - pad * 0.7) {
-      ctx.strokeStyle = "rgba(59,52,43,0.13)"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(pad, ly + gap * 0.78); ctx.lineTo(right, ly + gap * 0.78); ctx.stroke();
-      if (li < lines.length && lines[li]) {
-        ctx.font = crayonFont(44);
-        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-        ctx.fillStyle = memo ? crayonPattern(96, 72, 54) : "rgba(154,143,125,0.65)";
-        ctx.fillText(lines[li], pad + 6, ly + gap * 0.56);
-      }
-      li++; ly += gap;
-    }
+    // 한 줄 일기 (크레파스 손글씨, 한 줄) — 사진 위 한마디 우선, 없으면 메모
+    y += pad * 0.35;
+    const written = state.point.trim() || state.memo.trim();
+    ctx.font = crayonFont(58);
+    const one = wrapLines(written || "오늘의 한마디를 적어보세요", W - pad * 2, 1)[0];
+    // 밑줄
+    ctx.strokeStyle = "rgba(59,52,43,0.16)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(pad, y + 60); ctx.lineTo(right, y + 60); ctx.stroke();
+    // 글씨
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = written ? crayonPattern(96, 72, 54) : "rgba(154,143,125,0.6)";
+    ctx.fillText(one, pad + 6, y + 44);
   }
 
   // ---------- 캡션 ----------
