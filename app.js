@@ -95,6 +95,7 @@
     bgOffsetY: 0,
     objects: [],
     selectedId: null,
+    editingId: null,
     seq: 0,
     addOffset: 0,
     hasBg: false,
@@ -207,7 +208,7 @@
     Array.from(document.querySelectorAll(".preset-btn")).forEach((b) =>
       b.addEventListener("click", () => addTextWithPreset(b.dataset.preset)));
     Array.from(document.querySelectorAll(".fancy-btn")).forEach((b) =>
-      b.addEventListener("click", () => { textArea.value = toStyle(textArea.value, b.dataset.fancy); textArea.focus(); }));
+      b.addEventListener("click", () => applyFancy(b.dataset.fancy)));
     fontSelect.addEventListener("change", (e) => {
       state.font = e.target.value;
       const o = selected();
@@ -226,7 +227,7 @@
     objRotate.addEventListener("change", pushHistory);
     objColor.addEventListener("input", (e) => { const o = selected(); if (o && o.kind !== "emoji") { o.color = e.target.value; updateEl(o); } });
     objColor.addEventListener("change", pushHistory);
-    objEdit.addEventListener("click", editSelectedText);
+    objEdit.addEventListener("click", () => { const o = selected(); if (o && o.kind === "text") enterEdit(o); });
     objFront.addEventListener("click", bringFront);
     objDelete.addEventListener("click", deleteSelected);
 
@@ -324,25 +325,10 @@
     return { x: CW / 2 + (o - 2.5) * 40, y: CH / 2 + (o - 2.5) * 40 };
   }
 
-  async function addText() {
-    const txt = await openTextModal("");
-    if (txt == null || txt.trim() === "") return;
-    pushHistory();
-    const p = nextPos();
-    const obj = {
-      id: ++state.seq, kind: "text", text: txt,
-      font: state.font, color: state.textColor,
-      x: p.x, y: p.y, size: 120, rotation: 0,
-    };
-    state.objects.push(obj);
-    renderObjects();
-    markBg();
-    setMode("select");
-    selectObject(obj.id);
-  }
+  function addText() { createTextObject(null); }
 
   // 프리셋 클릭: 텍스트가 선택돼 있으면 스타일만 교체, 아니면 새 텍스트 추가
-  async function addTextWithPreset(key) {
+  function addTextWithPreset(key) {
     if (!TEXT_PRESETS[key]) return;
     const sel = selected();
     if (sel && sel.kind === "text") {
@@ -352,20 +338,24 @@
       selectObject(sel.id);
       return;
     }
-    const txt = await openTextModal("");
-    if (txt == null || txt.trim() === "") return;
+    createTextObject(key);
+  }
+
+  // 새 텍스트를 만들고 캔버스 위에서 바로 입력(인라인 편집)
+  function createTextObject(presetKey) {
     pushHistory();
     const p = nextPos();
+    const base = presetKey ? presetFields(presetKey) : { font: state.font, color: state.textColor };
     const obj = {
-      id: ++state.seq, kind: "text", text: txt,
-      x: p.x, y: p.y, size: TEXT_PRESETS[key].size, rotation: 0,
-      ...presetFields(key),
+      id: ++state.seq, kind: "text", text: "",
+      x: p.x, y: p.y, size: presetKey ? TEXT_PRESETS[presetKey].size : 120, rotation: 0,
+      ...base,
     };
     state.objects.push(obj);
     renderObjects();
     markBg();
-    setMode("select");
     selectObject(obj.id);
+    enterEdit(obj);
   }
 
   function addDeco(ch, kind) {
@@ -421,7 +411,7 @@
 
     // 이벤트
     el.addEventListener("pointerdown", (e) => onObjDown(e, o));
-    el.addEventListener("dblclick", () => { if (o.kind === "text") { selectObject(o.id); editSelectedText(); } });
+    el.addEventListener("dblclick", () => { if (o.kind === "text") { selectObject(o.id); enterEdit(o); } });
     del.addEventListener("pointerdown", (e) => { e.stopPropagation(); selectObject(o.id); deleteSelected(); });
     tr.addEventListener("pointerdown", (e) => onTransformDown(e, o));
 
@@ -433,7 +423,7 @@
     el = el || o._el;
     if (!el) return;
     const span = el.querySelector(".obj-text");
-    span.textContent = o.text;
+    if (state.editingId !== o.id) span.textContent = o.text;   // 편집 중엔 캐럿 보존
     el.style.left = o.x + "px";
     el.style.top = o.y + "px";
     el.style.fontFamily = o.font;
@@ -495,6 +485,7 @@
   let drag = null;
   function onObjDown(e, o) {
     if (state.mode === "bg") return;
+    if (state.editingId === o.id) return;              // 편집 중엔 캐럿 배치 (드래그 안 함)
     if (e.target.classList.contains("handle")) return; // 핸들은 별도 처리
     e.stopPropagation();
     selectObject(o.id);
@@ -562,44 +553,65 @@
   // =========================================================
   //  개체 편집/삭제/순서
   // =========================================================
-  async function editSelectedText() {
-    const o = selected();
-    if (!o || o.kind !== "text") return;
-    const txt = await openTextModal(o.text);
-    if (txt == null) return;
-    pushHistory();
-    o.text = txt; updateEl(o);
+  // ---------- 인라인 편집 (사진 위에서 바로 입력, 모달 없음) ----------
+  function editingObj() { return state.objects.find((o) => o.id === state.editingId) || null; }
+
+  function caretEnd(el) {
+    try {
+      const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    } catch (_) {}
   }
 
-  // 여러 줄 텍스트 입력 모달 (prompt 대체) — 확인 시 문자열, 취소 시 null 반환
-  const textModal = $("textModal"), textArea = $("textArea");
-  const textOk = $("textOk"), textCancel = $("textCancel");
-  function openTextModal(initial) {
-    return new Promise((resolve) => {
-      textArea.value = initial || "";
-      textModal.hidden = false;
-      textArea.focus();
-      textArea.setSelectionRange(textArea.value.length, textArea.value.length);
+  function enterEdit(o) {
+    if (!o || o.kind !== "text" || !o._el) return;
+    const span = o._el.querySelector(".obj-text");
+    if (!span) return;
+    state.editingId = o.id;
+    o._el.classList.add("editing");
+    span.setAttribute("contenteditable", "true");
+    span.textContent = o.text;
+    span.focus();
+    caretEnd(span);
+    span.addEventListener("input", onEditInput);
+    span.addEventListener("blur", onEditBlur);
+    span.addEventListener("keydown", onEditKey);
+  }
+  function onEditInput(e) {
+    const o = editingObj();
+    if (o) o.text = e.target.innerText;
+  }
+  function onEditKey(e) {
+    if (e.key === "Escape") { e.preventDefault(); e.target.blur(); }
+    else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.target.blur(); }
+  }
+  function onEditBlur(e) {
+    const span = e.target;
+    const o = editingObj();
+    span.removeEventListener("input", onEditInput);
+    span.removeEventListener("blur", onEditBlur);
+    span.removeEventListener("keydown", onEditKey);
+    span.removeAttribute("contenteditable");
+    state.editingId = null;
+    if (!o) return;
+    o._el && o._el.classList.remove("editing");
+    o.text = (span.innerText || "").replace(/\n+$/, "");
+    if (o.text.trim() === "") {            // 빈 텍스트는 취소로 간주 → 삭제
+      state.objects = state.objects.filter((x) => x.id !== o.id);
+      if (state.selectedId === o.id) { state.selectedId = null; panels.selected.hidden = true; }
+      renderObjects();
+    } else {
+      updateEl(o);
+    }
+  }
 
-      const cleanup = () => {
-        textModal.hidden = true;
-        textOk.removeEventListener("click", onOk);
-        textCancel.removeEventListener("click", onCancel);
-        textModal.removeEventListener("pointerdown", onBackdrop);
-        textArea.removeEventListener("keydown", onKey);
-      };
-      const onOk = () => { const v = textArea.value; cleanup(); resolve(v); };
-      const onCancel = () => { cleanup(); resolve(null); };
-      const onBackdrop = (e) => { if (e.target === textModal) onCancel(); };
-      const onKey = (e) => {
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onOk(); }
-        else if (e.key === "Escape") { e.preventDefault(); onCancel(); }
-      };
-      textOk.addEventListener("click", onOk);
-      textCancel.addEventListener("click", onCancel);
-      textModal.addEventListener("pointerdown", onBackdrop);
-      textArea.addEventListener("keydown", onKey);
-    });
+  // 글씨 변환: 선택된 텍스트에 유니코드 스타일 적용
+  function applyFancy(style) {
+    const o = selected();
+    if (!o || o.kind !== "text") return;
+    pushHistory();
+    o.text = toStyle(o.text, style);
+    updateEl(o);
   }
 
   // ---------- 글씨 변환 (유니코드 특수 글꼴) ----------

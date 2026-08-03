@@ -302,6 +302,13 @@ select {
 }
 .obj.dragging { cursor: grabbing; }
 .obj-text { display: inline; white-space: pre; }
+/* 인라인 편집 중인 텍스트 */
+.obj-text[contenteditable] { cursor: text; caret-color: var(--accent-2); }
+.obj.editing .obj-text {
+  outline: calc(1.5px / var(--stage-scale)) dashed var(--accent-2);
+  outline-offset: calc(3px / var(--stage-scale));
+  min-width: 0.4em;
+}
 .obj .frame {
   position: absolute; inset: -6px;
   border: calc(1.5px / var(--stage-scale)) dashed var(--accent-2);
