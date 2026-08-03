@@ -135,8 +135,7 @@
     const r = RATIOS[state.ratio]; W = r.w; H = r.h;
     canvas.width = W; canvas.height = H;
     ctx.clearRect(0, 0, W, H);
-    if (state.layout === "polaroid") layoutPolaroid();
-    else if (state.layout === "minimal") layoutMinimal();
+    if (state.layout === "minimal") layoutMinimal();
     else if (state.layout === "diary") layoutDiary();
     else layoutBand();
     buildCaption();
@@ -194,6 +193,24 @@
   }
   function emojiPair() { return `${state.mood} ${state.weather}`; }
 
+  // 크레파스 질감: 통통한 손글씨(개구) + 알갱이(grain) 패턴으로 채우기
+  const crayonFont = (s) => `700 ${Math.round(s)}px "Gaegu","Nanum Pen Script",cursive`;
+  const _crayonCache = {};
+  function crayonPattern(r, g, b) {
+    const key = r + "," + g + "," + b;
+    if (_crayonCache[key]) return _crayonCache[key];
+    const n = document.createElement("canvas"); n.width = n.height = 110;
+    const c = n.getContext("2d");
+    const img = c.createImageData(110, 110); const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      d[i] = r; d[i + 1] = g; d[i + 2] = b;
+      // 알갱이: 일부 픽셀은 비워 종이가 비치게 → 왁스 질감
+      d[i + 3] = Math.random() < 0.22 ? Math.floor(Math.random() * 70) : 200 + Math.floor(Math.random() * 55);
+    }
+    c.putImageData(img, 0, 0);
+    return (_crayonCache[key] = ctx.createPattern(n, "repeat"));
+  }
+
   // ---------- 레이아웃: 밴드 ----------
   function layoutBand() {
     if (state.photo) drawCover(state.photo, 0, 0, W, H); else placeholder(0, 0, W, H);
@@ -232,43 +249,6 @@
     roundRectPath(x, y, tw + padX * 2, 30 + padY * 2, 999);
     ctx.fillStyle = "rgba(255,255,255,0.92)"; ctx.fill();
     ctx.fillStyle = INK; ctx.fillText(text, x + padX, y + padY + 1);
-  }
-
-  // ---------- 레이아웃: 폴라로이드 ----------
-  function layoutPolaroid() {
-    fillPaper();
-    ctx.save();
-    ctx.translate(W / 2, H / 2);
-    ctx.rotate(-2.2 * Math.PI / 180);
-
-    const CW = W * 0.78;
-    const border = CW * 0.055;
-    const photo = CW - border * 2;
-    const strip = CW * 0.34;
-    const CH = border + photo + strip;
-    const x = -CW / 2, y = -CH / 2;
-
-    // 카드
-    ctx.shadowColor = "rgba(59,52,43,0.28)"; ctx.shadowBlur = 46; ctx.shadowOffsetY = 22;
-    roundRectPath(x, y, CW, CH, 14); ctx.fillStyle = CARD; ctx.fill();
-    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-
-    // 사진
-    if (state.photo) drawCover(state.photo, x + border, y + border, photo, photo, 4);
-    else placeholder(x + border, y + border, photo, photo, 4);
-
-    // 하단 스트립 텍스트
-    const sx = x + CW / 2, sy = y + border + photo;
-    ctx.textAlign = "center";
-    ctx.fillStyle = INK; ctx.textBaseline = "middle";
-    ctx.font = fPoint(84);
-    const pt = wrapLines(state.point || "오늘도 사랑스러운 하루", CW - border * 2, 1)[0];
-    ctx.fillText(pt, sx, sy + strip * 0.4);
-    ctx.fillStyle = MUTED; ctx.font = fSub(30, 600);
-    const info = nameOr() + (ageShort() ? "  ·  " + ageShort() : "") + "   " + emojiPair();
-    ctx.fillText(info, sx, sy + strip * 0.76);
-
-    ctx.restore();
   }
 
   // ---------- 레이아웃: 미니멀 ----------
@@ -350,26 +330,28 @@
     roundRectPath(pad, y, W - pad * 2, picH, 12); ctx.stroke();
     y += picH + pad * 0.5;
 
-    // 제목(포인트 한마디)
+    // 제목(포인트 한마디) — 코랄 크레파스
     if (state.point.trim()) {
-      ctx.fillStyle = INK; ctx.font = fPoint(56); ctx.textAlign = "left";
-      ctx.fillText("“" + state.point.trim() + "”", pad, y + 44);
-      y += 76;
+      ctx.font = crayonFont(60); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = crayonPattern(206, 96, 78);
+      ctx.fillText("“" + state.point.trim() + "”", pad, y + 46);
+      y += 82;
     }
 
-    // 줄 친 글쓰기 칸 + 메모
-    const gap = 62;
-    ctx.font = fPoint(40);
+    // 줄 친 글쓰기 칸 + 메모 — 갈색 크레파스 손글씨
+    const gap = 66;
+    ctx.font = crayonFont(44);
     const memo = state.memo.trim();
     const lines = wrapLines(memo || "오늘 우리 아이의 하루를 적어보세요", W - pad * 2, 30);
     let ly = y, li = 0;
     while (ly + gap <= H - pad * 0.7) {
       ctx.strokeStyle = "rgba(59,52,43,0.13)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(pad, ly + gap * 0.78); ctx.lineTo(right, ly + gap * 0.78); ctx.stroke();
-      if (li < lines.length) {
-        ctx.fillStyle = memo ? INK : MUTED;
+      if (li < lines.length && lines[li]) {
+        ctx.font = crayonFont(44);
         ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-        ctx.fillText(lines[li], pad + 4, ly + gap * 0.56);
+        ctx.fillStyle = memo ? crayonPattern(96, 72, 54) : "rgba(154,143,125,0.65)";
+        ctx.fillText(lines[li], pad + 6, ly + gap * 0.56);
       }
       li++; ly += gap;
     }
