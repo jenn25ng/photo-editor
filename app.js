@@ -66,7 +66,6 @@
   const objectsLayer = $("objectsLayer"), emptyHint = $("emptyHint");
 
   const fileInput = $("fileInput"), bgColorInput = $("bgColorInput");
-  const penColor = $("penColor"), penSize = $("penSize"), penSizeLabel = $("penSizeLabel"), penEraser = $("penEraser");
   const bgZoom = $("bgZoom"), bgZoomLabel = $("bgZoomLabel"), bgReset = $("bgReset");
   const addTextBtn = $("addTextBtn"), fontSelect = $("fontSelect"), textColor = $("textColor");
   const trayItems = $("trayItems"), trayCats = $("trayCats");
@@ -75,7 +74,7 @@
   const objColor = $("objColor"), objColorWrap = $("objColorWrap");
 
   const panels = {
-    bg: $("panel-bg"), pen: $("panel-pen"), text: $("panel-text"), tray: $("panel-tray"), selected: $("panel-selected"),
+    bg: $("panel-bg"), text: $("panel-text"), tray: $("panel-tray"), selected: $("panel-selected"),
   };
   const modeBtns = Array.from(document.querySelectorAll(".mode-btn"));
   const segBtns = Array.from(document.querySelectorAll(".seg-btn"));
@@ -84,9 +83,6 @@
   const state = {
     ratio: "4:5",
     mode: "select",
-    penColor: "#ff2d6b",
-    penSize: 14,
-    eraser: false,
     font: "Nanum Pen Script",
     textColor: "#222222",
     bgColor: "#ffffff",
@@ -203,11 +199,6 @@
 
     modeBtns.forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
 
-    // 펜
-    penColor.addEventListener("input", (e) => { state.penColor = e.target.value; state.eraser = false; syncEraserBtn(); });
-    penSize.addEventListener("input", (e) => { state.penSize = +e.target.value; penSizeLabel.textContent = "굵기 " + state.penSize; });
-    penEraser.addEventListener("click", () => { state.eraser = !state.eraser; syncEraserBtn(); });
-
     // 텍스트
     addTextBtn.addEventListener("click", addText);
     Array.from(document.querySelectorAll(".preset-btn")).forEach((b) =>
@@ -242,11 +233,6 @@
     $("downloadBtn").addEventListener("click", download);
     $("shareBtn").addEventListener("click", share);
 
-    // 펜 드로잉
-    drawCanvas.addEventListener("pointerdown", penDown);
-    drawCanvas.addEventListener("pointermove", penMove);
-    window.addEventListener("pointerup", penUp);
-
     // 배경 사진 조정 (확대 · 위치 이동)
     drawCanvas.addEventListener("pointerdown", bgPanDown);
     drawCanvas.addEventListener("pointermove", bgPanMove);
@@ -271,11 +257,6 @@
     });
   }
 
-  function syncEraserBtn() {
-    penEraser.classList.toggle("is-active", state.eraser);
-    penEraser.style.background = state.eraser ? "#ffe0ea" : "";
-  }
-
   // =========================================================
   //  모드 & 패널
   // =========================================================
@@ -285,19 +266,17 @@
 
     Object.values(panels).forEach((p) => (p.hidden = true));
     if (mode === "bg") panels.bg.hidden = false;
-    else if (mode === "pen") panels.pen.hidden = false;
     else if (mode === "text") panels.text.hidden = false;
     else if (mode === "kaomoji" || mode === "sticker") {
       panels.tray.hidden = false;
       buildTray(mode);
     }
 
-    // 손글씨=그리기, 배경조정=사진 이동 → 캔버스가 입력을 받음
+    // 배경조정 모드에서만 캔버스가 사진 이동 입력을 받음
     // 그 외 모든 모드에서는 개체를 바로 드래그/크기/회전 할 수 있음
-    const canvasGrabs = mode === "pen" || mode === "bg";
-    drawCanvas.style.pointerEvents = canvasGrabs ? "auto" : "none";
+    drawCanvas.style.pointerEvents = mode === "bg" ? "auto" : "none";
     drawCanvas.style.cursor = mode === "bg" ? "move" : "";
-    objectsLayer.style.pointerEvents = canvasGrabs ? "none" : "auto";
+    objectsLayer.style.pointerEvents = mode === "bg" ? "none" : "auto";
 
     if (mode !== "select") selectObject(null);
     else if (state.selectedId) panels.selected.hidden = false;
@@ -488,7 +467,7 @@
     state.selectedId = id;
     state.objects.forEach((o) => o._el && o._el.classList.toggle("selected", o.id === id));
     const o = selected();
-    if (o && state.mode !== "pen" && state.mode !== "bg") {
+    if (o && state.mode !== "bg") {
       panels.selected.hidden = false;
       objSize.value = Math.round(o.size);
       objRotate.value = Math.round(o.rotation);
@@ -512,7 +491,7 @@
 
   let drag = null;
   function onObjDown(e, o) {
-    if (state.mode === "pen" || state.mode === "bg") return;
+    if (state.mode === "bg") return;
     if (e.target.classList.contains("handle")) return; // 핸들은 별도 처리
     e.stopPropagation();
     selectObject(o.id);
@@ -685,28 +664,8 @@
   }
 
   // =========================================================
-  //  손글씨(펜)
+  //  배경 사진 조정: 한 손가락 이동 + 두 손가락 핀치 확대
   // =========================================================
-  let pen = null;
-  function penDown(e) {
-    if (state.mode !== "pen") return;
-    e.preventDefault();
-    pushHistory();
-    const p = toCanvas(e);
-    pen = { x: p.x, y: p.y };
-    strokeSeg(p.x, p.y, p.x, p.y);
-    markBg();
-    drawCanvas.setPointerCapture && drawCanvas.setPointerCapture(e.pointerId);
-  }
-  function penMove(e) {
-    if (!pen) return;
-    const p = toCanvas(e);
-    strokeSeg(pen.x, pen.y, p.x, p.y);
-    pen.x = p.x; pen.y = p.y;
-  }
-  function penUp() { pen = null; }
-
-  // ---------- 배경 사진 조정: 한 손가락 이동 + 두 손가락 핀치 확대 ----------
   const bgPointers = new Map();   // pointerId -> {x,y} (캔버스 좌표)
   let bgGesture = null;           // { mode:"pan"|"pinch", ... }
 
@@ -766,21 +725,6 @@
     } else if (bgPointers.size === 0) {
       bgGesture = null;
     }
-  }
-
-  function strokeSeg(x1, y1, x2, y2) {
-    dctx.lineJoin = dctx.lineCap = "round";
-    dctx.lineWidth = state.penSize;
-    if (state.eraser) {
-      dctx.globalCompositeOperation = "destination-out";
-      dctx.strokeStyle = "rgba(0,0,0,1)";
-    } else {
-      dctx.globalCompositeOperation = "source-over";
-      dctx.strokeStyle = state.penColor;
-    }
-    dctx.beginPath();
-    dctx.moveTo(x1, y1); dctx.lineTo(x2, y2); dctx.stroke();
-    dctx.globalCompositeOperation = "source-over";
   }
 
   // =========================================================

@@ -41,7 +41,6 @@
       <div class="tool-row modes">
         <button class="mode-btn is-active" data-mode="select">선택</button>
         <button class="mode-btn" data-mode="bg">배경</button>
-        <button class="mode-btn" data-mode="pen">손글씨</button>
         <button class="mode-btn" data-mode="text">텍스트</button>
         <button class="mode-btn" data-mode="kaomoji">템플릿</button>
         <button class="mode-btn" data-mode="sticker">스티커</button>
@@ -54,15 +53,6 @@
         </label>
         <button class="btn ghost" id="bgReset">초기화</button>
         <span class="ctrl">드래그로 이동 · 두 손가락으로 확대</span>
-      </div>
-
-      <!-- 손글씨(펜) 패널 -->
-      <div class="panel" id="panel-pen" hidden>
-        <label class="ctrl">색<input type="color" id="penColor" value="#ff2d6b" /></label>
-        <label class="ctrl"><span id="penSizeLabel">굵기 14</span>
-          <input type="range" id="penSize" min="2" max="120" value="14" />
-        </label>
-        <button class="btn ghost" id="penEraser">지우개</button>
       </div>
 
       <!-- 텍스트 패널 -->
@@ -158,7 +148,7 @@
   </main>
 
   <footer class="app-footer">
-    손글씨는 드래그, 개체는 <b>선택</b>모드에서 이동·크기·회전 · 저장은 1080px 고해상도
+    개체는 <b>선택</b> 모드에서 이동 · 코너 핸들로 크기·회전 · 1080px 고해상도로 저장
   </footer>
 
   <!-- 텍스트 입력 모달 (여러 줄 지원) -->
