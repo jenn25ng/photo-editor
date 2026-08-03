@@ -359,6 +359,8 @@ select {
   padding: 2px 16px 26px; line-height: 1.65; letter-spacing: 0.01em;
 }
 .app-footer b { color: var(--accent); font-weight: 600; }
+.app-footer a { display: inline-block; margin-top: 6px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.app-footer a:hover { text-decoration: underline; }
 
 /* ===== 텍스트 입력 모달 ===== */
 .modal-backdrop {
